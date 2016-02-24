@@ -6,21 +6,24 @@ public class BloopBrain
 
     public float[] inputLayers, hiddenLayers, outputLayers;
     public float[,] inputWeights, hiddenWeights;
-    int numberOfInputs = 3;
+    /*int numberOfInputs = 3;
     int numberOfHidden = 3;
-    int numberOfOutputs = 2;
-    public BloopBrain()
-    {
+    int numberOfOutputs = 2;*/
 
-        
+    int numberOfInputs = 4;
+    int numberOfHidden = 4;
+    int numberOfOutputs = 1;
+    public float fitness = 0;
+    public BloopBrain()
+    { 
         inputLayers = new float[numberOfInputs];
         hiddenLayers = new float[numberOfHidden];
         outputLayers = new float[numberOfOutputs];
         inputWeights = new float[numberOfHidden,numberOfInputs];
         hiddenWeights = new float[numberOfOutputs,numberOfHidden];
 
-        /*inputLayers[2] = 1;
-        hiddenLayers[2] = 1;*/
+        inputLayers[numberOfInputs - 1] = 1f;
+        hiddenLayers[numberOfHidden - 1] = 1f;
     }
 
     public void GenerationRandomBrain()
@@ -42,14 +45,6 @@ public class BloopBrain
             }
 
         }
-        /*for(int i = 0; i < inputWeights.Length -1;i++)
-        {
-            inputWeights[i] = Random.Range(-1f, 1f); ;
-        }
-        for (int i = 0; i < hiddenWeights.Length - 1; i++)
-        {
-            hiddenWeights[i] = Random.Range(-1f, 1f); ;
-        }*/
     }
 
     public void ping()
@@ -72,23 +67,6 @@ public class BloopBrain
             outputLayers[i] = tanh(outputLayers[i]);
         }
 
-        /* for (int i = 0; i < hiddenLayers.Length; i++)
-        {
-            for (int j = 0; j < inputWeights.Length; j++)
-            {
-                hiddenLayers[i] += (inputWeights[j]* inputLayers[j]);
-            }
-            hiddenLayers[i] = tanh(hiddenLayers[i]);
-        }
-
-        for (int i = 0; i < outputLayers.Length; i++)
-        {
-            for (int j = 0; j < hiddenWeights.Length; j++)
-            {
-                outputLayers[i] += (hiddenWeights[j] * hiddenLayers[j]);
-            }
-            outputLayers[i] = tanh(outputLayers[i]);
-        }*/
     }
 
     public float tanh(float x)
