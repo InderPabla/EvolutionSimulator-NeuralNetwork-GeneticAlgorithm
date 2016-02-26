@@ -12,15 +12,18 @@ public class BalanceCreature : MonoBehaviour {
     bool testMode = false;
 	void Start () {
         boardPhysics = GetComponent<Rigidbody2D>();
-        polePhysics.transform.eulerAngles = new Vector3(0f,0f,-35);
-        brain = new BloopBrain();
-        brain.GenerationRandomBrain();
+        if(Random.Range(0,2) == 0)
+            polePhysics.transform.eulerAngles = new Vector3(0f,0f,Random.Range(-25,-19));
+        else 
+            polePhysics.transform.eulerAngles = new Vector3(0f, 0f, Random.Range(20, 26));
+        /*brain = new BloopBrain();
+        brain.GenerationRandomBrain();*/
 
         //velocity of board
         //angle of pole
         //angular vel of pole
 
-        
+
     }
 	
 
@@ -40,7 +43,7 @@ public class BalanceCreature : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update () {
+    void FixedUpdate () {
         if (activate)
         {
             fitTick += Time.deltaTime;
@@ -51,13 +54,21 @@ public class BalanceCreature : MonoBehaviour {
 
 
             float speed = brain.outputLayers[0];
-            boardPhysics.velocity += new Vector2(speed * 0.01f, 0);
-
+            boardPhysics.velocity += new Vector2(speed, 0);
             float angle = polePhysics.transform.eulerAngles.z;
+            bool failed = false;
 
-            if (Mathf.Abs(polePhysics.transform.eulerAngles.z) >= 45 && testMode == false)
+            if ((angle <= 45 && angle >=0) || (angle<=360 && angle>=315))
             {
-                Finish();
+                failed = false;
+            }
+            else
+                failed = true;
+            
+
+            if ((failed || polePhysics.transform.position.y <= 0) && testMode == false)
+            {
+                Finish();  
             }
 
             
@@ -68,7 +79,8 @@ public class BalanceCreature : MonoBehaviour {
 
     void Finish()
     {
-        brain.fitness = /*Mathf.Abs(polePhysics.transform.eulerAngles.z) + (Mathf.Abs(polePhysics.transform.eulerAngles.z)*boardPhysics.velocity.x)*/fitTick ;
+        //brain.fitness = /*Mathf.Abs(polePhysics.transform.eulerAngles.z) + (Mathf.Abs(polePhysics.transform.eulerAngles.z)*boardPhysics.velocity.x)*/(fitTick - polePhysics.angularVelocity) - (Mathf.Abs(polePhysics.transform.eulerAngles.z)*Mathf.Deg2Rad);
+        brain.fitness = fitTick;
         transform.parent.SendMessage("UpdateCounter",brain);
         Destroy(gameObject);
     }

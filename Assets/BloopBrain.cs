@@ -32,7 +32,7 @@ public class BloopBrain
         {
             for (int j = 0; j < numberOfInputs; j++)
             {
-                inputWeights[i,j] = Random.Range(-10f, 10f); ;
+                inputWeights[i,j] = Random.Range(-10f, 10f); 
             }
             
         }
@@ -41,7 +41,7 @@ public class BloopBrain
         {
             for (int j = 0; j < numberOfHidden; j++)
             {
-                hiddenWeights[i, j] = Random.Range(-10f, 10f); ;
+                hiddenWeights[i, j] = Random.Range(-10f, 10f); 
             }
 
         }
@@ -80,6 +80,83 @@ public class BloopBrain
             float a = Mathf.Exp(x);
             float b = Mathf.Exp(-x);
             return (a - b) / (a + b);
+        }
+    }
+
+    public BloopBrain[] Crossover(BloopBrain brain)
+    {
+        BloopBrain[] cross = new BloopBrain[2];
+        int randomHiddenIndex = Random.Range(0, numberOfHidden);
+        int randomOutputIndex = Random.Range(0, numberOfOutputs);
+
+        cross[0] = new BloopBrain();
+        cross[1] = new BloopBrain();
+
+
+        for (int i = 0; i < randomHiddenIndex; i++)
+        {
+            for (int j = 0; j < numberOfInputs; j++)
+            {
+                cross[0].inputWeights[i, j] = inputWeights[i, j];
+                cross[1].inputWeights[i, j] = brain.inputWeights[i, j];
+            }
+
+        }
+
+        for (int i = 0; i < randomOutputIndex; i++)
+        {
+            for (int j = 0; j < numberOfHidden; j++)
+            {
+                cross[0].hiddenWeights[i, j] = hiddenWeights[i, j];
+                cross[1].hiddenWeights[i, j] = brain.hiddenWeights[i, j];
+            }
+
+        }
+
+        for (int i = randomHiddenIndex; i < numberOfHidden; i++)
+        {
+            for (int j = 0; j < numberOfInputs; j++)
+            {
+                cross[0].inputWeights[i, j] = brain.inputWeights[i, j];
+                cross[1].inputWeights[i, j] = inputWeights[i, j];
+            }
+
+        }
+
+        for (int i = randomOutputIndex; i < numberOfOutputs; i++)
+        {
+            for (int j = 0; j < numberOfHidden; j++)
+            {
+                cross[0].hiddenWeights[i, j] = brain.hiddenWeights[i, j];
+                cross[1].hiddenWeights[i, j] = hiddenWeights[i, j];
+            }
+
+        }
+
+
+        cross[0].Mutate();
+        cross[1].Mutate();
+        return cross;
+    }
+
+    public void Mutate()
+    {
+        if (Random.Range(0, 100) < 10)
+        {
+            int hiddenMutate = Random.Range(0, 2);
+            if (hiddenMutate == 0)
+            {
+                int randomHiddenIndex = Random.Range(0, numberOfHidden);
+                int randomInputIndex = Random.Range(0, numberOfInputs);
+                inputWeights[randomHiddenIndex, randomInputIndex] = Random.Range(-10f, 10f);
+
+            }
+            if (hiddenMutate == 1)
+            {
+                int randomOutputIndex = Random.Range(0, numberOfOutputs);
+                int randomHiddenIndex = Random.Range(0, numberOfHidden);
+                inputWeights[randomOutputIndex, randomHiddenIndex] = Random.Range(-10f, 10f);
+            }
         }
     }
 }

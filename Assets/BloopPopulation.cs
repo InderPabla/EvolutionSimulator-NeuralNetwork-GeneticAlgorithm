@@ -4,11 +4,12 @@ using System.Collections.Generic;
 
 public class BloopPopulation : MonoBehaviour
 {
+    private object mutex = new object();
     public GameObject creaturePrefab;
     GameObject[] balancers;
     List<BloopBrain> brainList = new List<BloopBrain>();
     List<BloopBrain> brainListReturned = new List<BloopBrain>();
-    int size = 100;
+    int size = 10;
     int sizeCounter = 0;
     float[,] rankedFitness;
     void Start ()
@@ -31,30 +32,55 @@ public class BloopPopulation : MonoBehaviour
 
     public void UpdateCounter(BloopBrain brain)
     {
-        brainListReturned.Add(brain);
-        if (sizeCounter == size)
+        lock (mutex)
         {
-            //Debug.Log("Done");
-            brainList.Clear();
-            
-            for (int i = 0; i < size; i++)
+            brainListReturned.Add(brain);
+            if (sizeCounter == size)
             {
-                rankedFitness[i, 0] = i;
-                rankedFitness[i, 1] = brainListReturned[i].fitness;
-                Destroy(balancers[i]);
-            }
+                //Debug.Log("Done");
+                brainList.Clear();
 
-            BubbleSortBrains();
-            Debug.Log(rankedFitness[size-1,1]);
-            Time.timeScale = 1f;
-            balancers[0] = (GameObject)Instantiate(creaturePrefab);
-            balancers[0].transform.parent = transform;
-            balancers[0].SendMessage("ActivateWithBrainTestMode", brainListReturned[(int)rankedFitness[size - 1, 0]]);
-        }
-        else
-        {
-            //Debug.Log(brain.fitness);
-            Next();
+                for (int i = 0; i < size; i++)
+                {
+                    rankedFitness[i, 0] = i;
+                    rankedFitness[i, 1] = brainListReturned[i].fitness;
+                    Destroy(balancers[i]);
+                }
+
+                BubbleSortBrains();
+                int[,] pairedIndcies = new int[size,2];
+                for (int i = 0; i < (size / 2); i++)
+                {
+
+                    pairedIndcies[i, 0] = Random.Range((size / 2), size);
+                    pairedIndcies[i, 1] = Random.Range((size / 2), size);
+
+                }
+                Debug.Log("BEST: " + rankedFitness[size - 1, 1]);
+                
+                for (int i = 0; i < (size / 2); i++)
+                {
+
+                    int index1 = (int)rankedFitness[pairedIndcies[i, 0], 0];
+                    int index2 = (int)rankedFitness[pairedIndcies[i, 1], 0];
+                    BloopBrain[] cross = brainListReturned[index1].Crossover(brainListReturned[index2]);
+                    brainList.Add(cross[0]);
+                    brainList.Add(cross[1]);
+                }
+                brainListReturned.Clear();
+                sizeCounter = 0;
+                Next(); 
+                /*Debug.Log("BEST: " + rankedFitness[size - 1, 1]);
+                Time.timeScale = 1f;
+                balancers[0] = (GameObject)Instantiate(creaturePrefab);
+                balancers[0].transform.parent = transform;
+                balancers[0].SendMessage("ActivateWithBrainTestMode", brainListReturned[(int)rankedFitness[size - 1, 0]]);*/
+            }
+            else
+            {
+                //Debug.Log(brain.fitness);
+                Next();
+            }
         }
     }
 
