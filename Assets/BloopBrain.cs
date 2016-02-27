@@ -10,8 +10,8 @@ public class BloopBrain
     int numberOfHidden = 3;
     int numberOfOutputs = 2;*/
 
-    int numberOfInputs = 4;
-    int numberOfHidden = 4;
+    int numberOfInputs = 6;
+    int numberOfHidden = 6;
     int numberOfOutputs = 1;
     public float fitness = 0;
     public BloopBrain()
@@ -155,7 +155,7 @@ public class BloopBrain
             {
                 int randomOutputIndex = Random.Range(0, numberOfOutputs);
                 int randomHiddenIndex = Random.Range(0, numberOfHidden);
-                inputWeights[randomOutputIndex, randomHiddenIndex] = Random.Range(-10f, 10f);
+                hiddenWeights[randomOutputIndex, randomHiddenIndex] = Random.Range(-10f, 10f);
             }
         }
     }

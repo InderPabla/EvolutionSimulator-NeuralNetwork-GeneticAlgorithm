@@ -13,9 +13,9 @@ public class BalanceCreature : MonoBehaviour {
 	void Start () {
         boardPhysics = GetComponent<Rigidbody2D>();
         if(Random.Range(0,2) == 0)
-            polePhysics.transform.eulerAngles = new Vector3(0f,0f,Random.Range(-25,-19));
+            polePhysics.transform.eulerAngles = new Vector3(0f,0f,-25);
         else 
-            polePhysics.transform.eulerAngles = new Vector3(0f, 0f, Random.Range(20, 26));
+            polePhysics.transform.eulerAngles = new Vector3(0f, 0f, 25);
         /*brain = new BloopBrain();
         brain.GenerationRandomBrain();*/
 
@@ -32,7 +32,7 @@ public class BalanceCreature : MonoBehaviour {
         this.brain = brain;
         activate = true;
         
-        Invoke("Finish",10f);
+        Invoke("Finish",20f);
     }
 
     public void ActivateWithBrainTestMode(BloopBrain brain)
@@ -46,10 +46,12 @@ public class BalanceCreature : MonoBehaviour {
     void FixedUpdate () {
         if (activate)
         {
-            fitTick += Time.deltaTime;
+            
             brain.inputLayers[0] = boardPhysics.velocity.x;
             brain.inputLayers[1] = Mathf.Deg2Rad * polePhysics.transform.eulerAngles.z;
             brain.inputLayers[2] = polePhysics.angularVelocity;
+            brain.inputLayers[3] = (transform.position.x)/4f;
+            brain.inputLayers[4] = polePhysics.transform.localPosition.x;
             brain.ping();
 
 
@@ -64,14 +66,23 @@ public class BalanceCreature : MonoBehaviour {
             }
             else
                 failed = true;
+
+
             
 
-            if ((failed || polePhysics.transform.position.y <= 0) && testMode == false)
+            polePhysics.transform.localPosition -= new Vector3(polePhysics.transform.localPosition.x, 0,0);
+   
+
+            /*if ((failed || polePhysics.transform.position.y <= 0) && testMode == false)
+            {
+                Finish();
+            }*/
+
+            if ((failed || polePhysics.transform.position.y <= 0 || transform.position.x>=4f || transform.position.x <= -4f) && testMode == false)
             {
                 Finish();  
             }
-
-            
+            fitTick += Time.deltaTime;
         }
 
 
@@ -80,7 +91,7 @@ public class BalanceCreature : MonoBehaviour {
     void Finish()
     {
         //brain.fitness = /*Mathf.Abs(polePhysics.transform.eulerAngles.z) + (Mathf.Abs(polePhysics.transform.eulerAngles.z)*boardPhysics.velocity.x)*/(fitTick - polePhysics.angularVelocity) - (Mathf.Abs(polePhysics.transform.eulerAngles.z)*Mathf.Deg2Rad);
-        brain.fitness = fitTick;
+        brain.fitness = fitTick - Mathf.Abs(polePhysics.transform.localPosition.x);
         transform.parent.SendMessage("UpdateCounter",brain);
         Destroy(gameObject);
     }
