@@ -50,6 +50,10 @@
      <Compile Include="Assets\BloopCreature.cs" />
      <Compile Include="Assets\BloopPopulation.cs" />
      <Compile Include="Assets\Layer.cs" />
+     <Compile Include="Assets\MyNEAT\Gene.cs" />
+     <Compile Include="Assets\MyNEAT\Genome.cs" />
+     <Compile Include="Assets\MyNEAT\NEAT.cs" />
+     <Compile Include="Assets\MyNEAT\Node.cs" />
      <Compile Include="Assets\Neuron.cs" />
      <Compile Include="Assets\Restriction.cs" />
  <Reference Include="UnityEngine.UI">

@@ -10,8 +10,8 @@ public class BloopBrain
     int numberOfHidden = 3;
     int numberOfOutputs = 2;*/
 
-    int numberOfInputs = 6;
-    int numberOfHidden = 6;
+    int numberOfInputs = 4;
+    int numberOfHidden = 4;
     int numberOfOutputs = 1;
     public float fitness = 0;
     public BloopBrain()
