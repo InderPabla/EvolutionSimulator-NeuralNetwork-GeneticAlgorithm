@@ -17,5 +17,10 @@ public class Gene
         this.weight = weight;
         this.enabled = enabled;
     }
-	
+
+    public Gene Copy()
+    {
+        return new Gene(inno, inNodeID, outNodeID, weight, enabled);
+    }
+
 }

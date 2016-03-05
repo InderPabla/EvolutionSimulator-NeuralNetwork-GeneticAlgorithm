@@ -18,6 +18,9 @@ public class Node  {
         this.type = type;
         this.nodeValue = nodeValue;
         this.nodeID = nodeID;
+
+        if (this.type == TYPE_INPUT_BIAS)
+            this.nodeValue = 1f;
     }
 
     public Node Copy()
