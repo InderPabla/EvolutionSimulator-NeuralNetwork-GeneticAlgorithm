@@ -5,37 +5,60 @@ public class Genome
 {
     public List<Node> nodeList = new List<Node>();
     public List<Gene> geneList = new List<Gene>();
+    int numberOfInputNodes = 0, numberOfOutputNodes = 0, numberOfHiddenNodes = 0;
+    int inputStartIndex = 0, outputStartIndex = 0, hiddenStartIndex = 0;
+    int mutationChance = 50; //to mutate or not to mutate 
+    int linkMutationChance = 50; //mutate chance for link  (100-linkChance) = node mutation chance
+
+
     public Genome()
     {
 
     }
 
+    public Genome(int numberOfInput, int numberOfOutput)
+    {
+        this.numberOfInputNodes = numberOfInput;
+        this.numberOfOutputNodes = numberOfOutput;
+
+
+        for(int i = 0;i< numberOfInputNodes; i++)
+        {
+            Node node = new Node(i, Node.TYPE_INPUT, 0);
+            if(i == numberOfInputNodes-1)
+                node = new Node(i, Node.TYPE_INPUT_BIAS, 1f);
+            nodeList.Add(node);
+        } 
+
+        for (int i = numberOfInputNodes; i < numberOfOutputNodes+ numberOfInputNodes; i++)
+        {
+            Node node = new Node(i, Node.TYPE_OUTPUT, 0);
+            nodeList.Add(node);
+        }
+
+        inputStartIndex = 0;
+        outputStartIndex = numberOfInputNodes;
+        hiddenStartIndex = outputStartIndex + numberOfOutputNodes;
+
+
+        for (int i = 0; i < numberOfInputNodes; i++)
+        {
+            for (int j = outputStartIndex; j < outputStartIndex+numberOfOutputNodes; j++)
+            {
+                Gene gene = new Gene(0, i, j, 1f, true);
+                geneList.Add(gene);
+            }
+        }      
+    }
+
     public void MakeRandom()
     {
-        Node node1 = new Node(0, Node.TYPE_INPUT, 0);
-        Node node2 = new Node(1, Node.TYPE_INPUT, 0);
-        Node node3 = new Node(2, Node.TYPE_INPUT, 0);
-        Node node4 = new Node(3, Node.TYPE_INPUT, 0);
-        Node node5 = new Node(4, Node.TYPE_INPUT, 0);
-        Node node6 = new Node(5, Node.TYPE_INPUT_BIAS, 1f);
-        Node node7 = new Node(6, Node.TYPE_OUTPUT, 0);
-
-        nodeList.Add(node1);
-        nodeList.Add(node2);
-        nodeList.Add(node3);
-        nodeList.Add(node4);
-        nodeList.Add(node5);
-        nodeList.Add(node6);
-        nodeList.Add(node7);
-
-        Mutate(); 
-        //print();
-        //feedforward();
+        Mutate();
     }
 
     public void Mutate()
     {
-        int randomNodeIndex = Random.Range(-1, nodeList.Count);
+        /*int randomNodeIndex = Random.Range(-1, nodeList.Count);
         if (randomNodeIndex == -1)
         {
             Gene gene;
@@ -75,6 +98,20 @@ public class Genome
             {
                 gene = new Gene(inno, inIndex, outIndex, weight, enabled);
                 geneList.Add(gene);
+            }
+        }*/
+
+        int randomMutationChance = Random.Range(0,100);
+        if (randomMutationChance <= mutationChance)
+        {
+            int randomLinkChance = Random.Range(0, 100);
+            if (randomLinkChance <= linkMutationChance)
+            {
+                LinkMutation();
+            }
+            else
+            {
+                NodeMutation();
             }
         }
     }

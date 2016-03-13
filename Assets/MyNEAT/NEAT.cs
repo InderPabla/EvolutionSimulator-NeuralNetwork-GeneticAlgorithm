@@ -10,7 +10,9 @@ public class NEAT : MonoBehaviour
     void Start ()
     {
         boardPhysics = GetComponent<Rigidbody2D>();
-        if (Random.Range(0, 2) == 0)
+        polePhysics1.transform.eulerAngles = new Vector3(0f, 0f, -20);
+        polePhysics2.transform.eulerAngles = new Vector3(0f, 0f, -20);
+        /*if (Random.Range(0, 2) == 0)
             polePhysics1.transform.eulerAngles = new Vector3(0f, 0f, -20);
         else
             polePhysics1.transform.eulerAngles = new Vector3(0f, 0f, 20);
@@ -18,9 +20,9 @@ public class NEAT : MonoBehaviour
         if (Random.Range(0, 2) == 0)
             polePhysics2.transform.eulerAngles = new Vector3(0f, 0f, -20);
         else
-            polePhysics2.transform.eulerAngles = new Vector3(0f, 0f, 20);
+            polePhysics2.transform.eulerAngles = new Vector3(0f, 0f, 20);*/
 
-        genome = new Genome();
+        genome = new Genome(6, 1);
         genome.MakeRandom();
 	}
 	
