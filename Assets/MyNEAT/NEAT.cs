@@ -23,7 +23,7 @@ public class NEAT : MonoBehaviour
             polePhysics2.transform.eulerAngles = new Vector3(0f, 0f, 20);*/
 
         genome = new Genome(6, 1);
-        genome.MakeRandom();
+        genome.Mutate();
 	}
 	
 	// Update is called once per frame

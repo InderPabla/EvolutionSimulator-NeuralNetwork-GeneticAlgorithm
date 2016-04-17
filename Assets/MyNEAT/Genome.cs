@@ -10,6 +10,7 @@ public class Genome
     int mutationChance = 50; //to mutate or not to mutate 
     int linkMutationChance = 50; //mutate chance for link  (100-linkChance) = node mutation chance
 
+    const int NOT_EXIST = -1;
 
     public Genome()
     {
@@ -48,12 +49,10 @@ public class Genome
                 Gene gene = new Gene(0, i, j, 1f, true);
                 geneList.Add(gene);
             }
-        }      
-    }
+        }
 
-    public void MakeRandom()
-    {
-        Mutate();
+        print();
+    
     }
 
     public void Mutate()
@@ -131,7 +130,45 @@ public class Genome
     */
     public void LinkMutation()
     {
+        int inNodeIndex = Random.Range(0, nodeList.Count);
+        int outNodeIndex = Random.Range(0, nodeList.Count);
 
+        Node inNode = nodeList[inNodeIndex];
+        Node outNode = nodeList[outNodeIndex];
+
+        if ((inNodeIndex == outNodeIndex) ||
+            (inNode.type <= Node.TYPE_INPUT && outNode.type <= Node.TYPE_INPUT) ||
+            (inNode.type == Node.TYPE_OUTPUT && outNode.type == Node.TYPE_OUTPUT))
+        {
+            //in and out node are both the samme, or both are outputs or inputs 
+            //this will cause issues with feed forward so we must ignore it
+        }
+        else
+        {
+            //in and out node are both different 
+
+            int geneIndex = geneConnectionExists(inNodeIndex, outNodeIndex);
+            if (geneIndex == NOT_EXIST)
+            {
+                //if gene does not exist
+
+                Gene gene = new Gene(0,inNodeIndex,outNodeIndex,1f,true); //new gene 
+                geneList.Add(gene); //add gene to the gene list
+            }
+            else
+            {
+                //if gene already exists with this creature
+
+                if (geneList[geneIndex].enabled == false)
+                {
+                    geneList[geneIndex].enabled = true; //if gene is disabled, enable it
+                }
+                else
+                {
+                    geneList[geneIndex].weight = Random.Range(-10f,10f); //if gene is enabled, pick a random weight
+                }
+            }
+        }
     }
 
     /*
@@ -145,20 +182,17 @@ public class Genome
 
     }
 
-    public bool geneConnectionExists(int inIndex, int outIndex)
+    public int geneConnectionExists(int inIndex, int outIndex)
     {
         for(int i = 0; i < geneList.Count; i++)
         {
             if(geneList[i].inNodeID == inIndex && geneList[i].outNodeID == outIndex)
             {
-                return true;
+                return i;
             }
         }
-
-        return false;
+        return -1;
     }
-
-
 
     public void feedforward()
     {
@@ -187,8 +221,6 @@ public class Genome
             if (nodeList[i].type == Node.TYPE_INPUT_BIAS)
                 nodeList[i].nodeValue = 1f;
         }
-
-
     }
 
     public void print()
