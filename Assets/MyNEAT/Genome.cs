@@ -57,49 +57,6 @@ public class Genome
 
     public void Mutate()
     {
-        /*int randomNodeIndex = Random.Range(-1, nodeList.Count);
-        if (randomNodeIndex == -1)
-        {
-            Gene gene;
-            Node node = new Node(nodeList.Count, Node.TYPE_HIDDEN, 0);
-            int inIndex = node.nodeID;
-            int outIndex = Random.Range(0, nodeList.Count);
-            float weight = Random.Range(-10f, 10f);
-            bool enabled = Random.Range(0, 4) != 0 ? true : false;
-            int inno = 1;
-
-            nodeList.Add(node);
-
-            if(!geneConnectionExists(inIndex, outIndex))
-            {
-                gene = new Gene(inno,inIndex,outIndex,weight,enabled);
-                geneList.Add(gene);
-            }
-            
-        }
-        else
-        {
-            Gene gene;
-            Node node = nodeList[randomNodeIndex];
-            int inIndex = node.nodeID;
-
-            int outMin = 0;
-            if (node.type == Node.TYPE_INPUT || node.type == Node.TYPE_INPUT_BIAS)
-                outMin = 6;
-
-            int outIndex = Random.Range(outMin, nodeList.Count);
-            float weight = Random.Range(-10f, 10f);
-            bool enabled = Random.Range(0, 4) != 0 ? true : false;
-            int inno = 1;
-
-            
-            if (!geneConnectionExists(inIndex, outIndex))
-            {
-                gene = new Gene(inno, inIndex, outIndex, weight, enabled);
-                geneList.Add(gene);
-            }
-        }*/
-
         int randomMutationChance = Random.Range(0,100);
         if (randomMutationChance <= mutationChance)
         {
@@ -136,15 +93,11 @@ public class Genome
         Node inNode = nodeList[inNodeIndex];
         Node outNode = nodeList[outNodeIndex];
 
-        if ((inNodeIndex == outNodeIndex) ||
-            (inNode.type <= Node.TYPE_INPUT && outNode.type <= Node.TYPE_INPUT) ||
-            (inNode.type == Node.TYPE_OUTPUT && outNode.type == Node.TYPE_OUTPUT))
+        if (!((inNodeIndex == outNodeIndex) || //make sure it's not the same node
+            (inNode.type <= Node.TYPE_INPUT && outNode.type <= Node.TYPE_INPUT) || //make sure both nodes are not input
+            (inNode.type == Node.TYPE_OUTPUT && outNode.type == Node.TYPE_OUTPUT))) //make sure both nodes are not output
         {
-            //in and out node are both the samme, or both are outputs or inputs 
-            //this will cause issues with feed forward so we must ignore it
-        }
-        else
-        {
+            
             //in and out node are both different 
 
             int geneIndex = geneConnectionExists(inNodeIndex, outNodeIndex);
@@ -179,7 +132,31 @@ public class Genome
     */
     public void NodeMutation()
     {
+        if (geneList.Count>0)
+        {
+            //get random gene index and disable link
+            int geneIndex = Random.Range(0,geneList.Count);
+            geneList[geneIndex].enabled = false;
 
+            //get node index for the 3 nodes
+            int nodeIndex1 = geneList[geneIndex].inNodeID;
+            int nodeIndex2 = nodeList.Count;
+            int nodeIndex3 = geneList[geneIndex].outNodeID;
+
+            //add new node as hidden node to node list and increment of hidden nodes
+            Node node = new Node(nodeIndex2,Node.TYPE_HIDDEN,0f);
+            nodeList.Add(node);
+            numberOfHiddenNodes++;
+
+
+            //Before  Gene 1 -> Gene 3
+            //Now Gene -> Gene 2 -> Gene 3
+            Gene gene1 = new Gene(0, nodeIndex1, nodeIndex2, geneList[geneIndex].weight, true);
+            Gene gene2 = new Gene(0, nodeIndex2, nodeIndex3, 1f, true);
+
+            geneList.Add(gene1);
+            geneList.Add(gene2);
+        }
     }
 
     public int geneConnectionExists(int inIndex, int outIndex)
