@@ -16,15 +16,15 @@ public class NEAT : MonoBehaviour
             polePhysics1.transform.eulerAngles = new Vector3(0f, 0f, -20);
         else
             polePhysics1.transform.eulerAngles = new Vector3(0f, 0f, 20);
-
+nb 
         if (Random.Range(0, 2) == 0)
             polePhysics2.transform.eulerAngles = new Vector3(0f, 0f, -20);
         else
             polePhysics2.transform.eulerAngles = new Vector3(0f, 0f, 20);*/
 
-        genome = new Genome(6, 1);
-        genome.Mutate();
-	}
+       // genome = new Genome(6, 1);
+       // genome.Mutate(); 
+    }
 	
 	// Update is called once per frame
 	void FixedUpdate ()

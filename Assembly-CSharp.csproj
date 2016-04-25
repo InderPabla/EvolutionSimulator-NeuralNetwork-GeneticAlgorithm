@@ -45,17 +45,20 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\BalanceCreature.cs" />
-     <Compile Include="Assets\BloopBrain.cs" />
-     <Compile Include="Assets\BloopCreature.cs" />
-     <Compile Include="Assets\BloopPopulation.cs" />
-     <Compile Include="Assets\Layer.cs" />
+     <Compile Include="Assets\Balancer\Balancer.cs" />
+     <Compile Include="Assets\Balancer\Layer.cs" />
+     <Compile Include="Assets\Balancer\Net.cs" />
+     <Compile Include="Assets\Balancer\Perceptron.cs" />
      <Compile Include="Assets\MyNEAT\Gene.cs" />
      <Compile Include="Assets\MyNEAT\Genome.cs" />
      <Compile Include="Assets\MyNEAT\NEAT.cs" />
+     <Compile Include="Assets\MyNEAT\NEATPopulation.cs" />
      <Compile Include="Assets\MyNEAT\Node.cs" />
-     <Compile Include="Assets\Neuron.cs" />
-     <Compile Include="Assets\Restriction.cs" />
+     <Compile Include="Assets\Trial\BalanceCreature.cs" />
+     <Compile Include="Assets\Trial\BloopBrain.cs" />
+     <Compile Include="Assets\Trial\BloopCreature.cs" />
+     <Compile Include="Assets\Trial\BloopPopulation.cs" />
+     <Compile Include="Assets\Trial\Restriction.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
