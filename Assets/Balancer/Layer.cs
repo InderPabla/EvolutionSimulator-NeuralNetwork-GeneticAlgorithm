@@ -2,23 +2,39 @@
 using System.Collections;
 
 public class Layer {
+
+    private Layer previousLayer;
+
     private int numberOfPerceptrons;
-    private int previousLayerNumberOfPerceptrons;
 
     private Perceptron[] perceptrons;
 
-    public Layer(int numberOfPerceptrons, int previousLayerNumberOfPerceptrons){
+    private bool isInputLayer = false;
+
+    public int x = 23;
+
+    public Layer(int numberOfPerceptrons)
+    {
         this.numberOfPerceptrons = numberOfPerceptrons;
-        this.previousLayerNumberOfPerceptrons = previousLayerNumberOfPerceptrons;
+        this.isInputLayer = true;
 
         perceptrons = new Perceptron[numberOfPerceptrons];
+
+        for (int i = 0; i < perceptrons.Length; i++){
+            perceptrons[i] = new Perceptron();
+        }
     }
 
-    public Layer(int numberOfPerceptrons) {
+    public Layer(int numberOfPerceptrons, Layer previousLayer) {
         this.numberOfPerceptrons = numberOfPerceptrons;
-        this.previousLayerNumberOfPerceptrons = -1;
+        this.previousLayer = previousLayer;
+        this.isInputLayer = false;
 
         perceptrons = new Perceptron[numberOfPerceptrons];
+
+        for (int i = 0; i < perceptrons.Length; i++){
+            perceptrons[i] = new Perceptron();
+        }
     }
 
 }
