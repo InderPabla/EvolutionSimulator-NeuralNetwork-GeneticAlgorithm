@@ -21,11 +21,13 @@ public class Net  {
         layers[0] = new Layer(numberOfInputPerceptrons);
          
         for (int i = 1; i < layers.Length; i++) {
-           if (IsOutputLayer(i)) {
-                layers[i] = new Layer(numberOfOutputPerceptrons, layers[i - 1]);
+            if (IsOutputLayer(i)) {
+                //if this layer is the output layer 
+                layers[i] = new Layer(numberOfOutputPerceptrons, layers[i - 1], Layer.OUTPUT_LAYER);
             }
             else {
-                layers[i] = new Layer(numberOfHiddenPerceptrons, layers[i - 1]);
+                //if this layer is the input layer
+                layers[i] = new Layer(numberOfHiddenPerceptrons, layers[i - 1], Layer.HIDDEN_LAYER);
             }
         }
         

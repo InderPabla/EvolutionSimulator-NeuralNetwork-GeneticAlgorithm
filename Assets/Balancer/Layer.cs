@@ -3,37 +3,82 @@ using System.Collections;
 
 public class Layer {
 
-    private Layer previousLayer;
+    // constants for types of layers
+    public const int INPUT_LAYER = 0; 
+    public const int OUTPUT_LAYER = 1;
+    public const int HIDDEN_LAYER = 2;
 
-    private int numberOfPerceptrons;
+    private Layer previousLayer; //previous layer pointer which will be used to feedforward the neural network
 
-    private Perceptron[] perceptrons;
+    private int numberOfPerceptrons; //number of perceptrons on this layer
 
-    private bool isInputLayer = false;
+    private Perceptron[] perceptrons; //perceptrons array
 
-    public int x = 23;
+    private int layerType; //this layers type
 
-    public Layer(int numberOfPerceptrons)
-    {
+    //This is the constructor for input layer since it does not need a previous layer
+    public Layer(int numberOfPerceptrons) {
         this.numberOfPerceptrons = numberOfPerceptrons;
-        this.isInputLayer = true;
+        this.layerType = INPUT_LAYER;
 
+        InitializePerceptrons(); //initialize perceptron for this layer 
+    }
+
+    //This is the constructor for output and hidden layers
+    public Layer(int numberOfPerceptrons, Layer previousLayer, int type) {
+        this.numberOfPerceptrons = numberOfPerceptrons; 
+        this.previousLayer = previousLayer;
+        this.layerType = type;
+
+        if (this.layerType == OUTPUT_LAYER) {
+            //if this is the output layer, then there is no bias perceptron on this layer
+            previousLayer.SetWeightsConnection(this.numberOfPerceptrons); 
+        }
+        else {
+            //else is this the hidden layer and thus subtract to remove bias connection
+            previousLayer.SetWeightsConnection(this.numberOfPerceptrons - 1);
+        }
+
+        InitializePerceptrons(); //initialize perceptron for this layer      
+    }
+
+    //initialize perceptron types based on current layer type
+    public void InitializePerceptrons() {
         perceptrons = new Perceptron[numberOfPerceptrons];
 
-        for (int i = 0; i < perceptrons.Length; i++){
-            perceptrons[i] = new Perceptron();
+        //create all perceptrons with their respected type 
+        for (int i = 0; i < perceptrons.Length; i++) {
+            bool isLast = i == perceptrons.Length-1; //last perceptron for input and hidden will be bias perceptron
+            int perceptronType = -1;
+
+            //switch statement for the 3 layers
+            switch (layerType) {
+                case INPUT_LAYER:
+                    //determine input perceptron type 
+                    if (isLast)
+                        perceptronType = Perceptron.INPUT_BIAS_PERCEPTRON; 
+                    else
+                        perceptronType = Perceptron.INPUT_PERCEPTRON;
+                    break;
+                case OUTPUT_LAYER:
+                    perceptronType = Perceptron.OUTPUT_PERCEPTRON; //output perceptron only has one type since there is no bias output neuron
+                    break;
+                case HIDDEN_LAYER:
+                    //determine hidden perceptron type 
+                    if (isLast)
+                        perceptronType = Perceptron.HIDDEN_BIAS_PERCEPTRON; 
+                    else
+                        perceptronType = Perceptron.HIDDEN_PERCEPTRON;
+                    break;
+            }
+            perceptrons[i] = new Perceptron(perceptronType); //instantiate perceptron 
         }
     }
 
-    public Layer(int numberOfPerceptrons, Layer previousLayer) {
-        this.numberOfPerceptrons = numberOfPerceptrons;
-        this.previousLayer = previousLayer;
-        this.isInputLayer = false;
-
-        perceptrons = new Perceptron[numberOfPerceptrons];
-
-        for (int i = 0; i < perceptrons.Length; i++){
-            perceptrons[i] = new Perceptron();
+    //set weight size for each perceptron with given number of connections
+    public void SetWeightsConnection(int numberOFConnections) {
+        for (int i = 0; i < perceptrons.Length; i++) {
+            perceptrons[i].SetPerceptronWeights(numberOFConnections);
         }
     }
 

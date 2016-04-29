@@ -10,12 +10,12 @@ public class Balancer : MonoBehaviour {
     private Net net;
 	
 	void Start () {
-        net = new Net(6,1,10,7);
+        net = new Net(7,1,10,8);
         
 	}
 	
-	
 	void Update () {
-	
-	}
+
+    }
+
 }
