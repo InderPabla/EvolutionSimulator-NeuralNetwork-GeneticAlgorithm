@@ -43,7 +43,7 @@ public class Layer {
     }
 
     //initialize perceptron types based on current layer type
-    public void InitializePerceptrons() {
+    private void InitializePerceptrons() {
         perceptrons = new Perceptron[numberOfPerceptrons];
 
         //create all perceptrons with their respected type 
@@ -71,15 +71,54 @@ public class Layer {
                         perceptronType = Perceptron.HIDDEN_PERCEPTRON;
                     break;
             }
-            perceptrons[i] = new Perceptron(perceptronType); //instantiate perceptron 
+            perceptrons[i] = new Perceptron(perceptronType, i); //instantiate perceptron 
         }
     }
 
+    public void SetPerceptronValues(float[] values) {
+        //set values for all perceptrons EXCEPT the last perceptron which is the bias
+        for (int i = 0; i < perceptrons.Length - 1; i++) {
+            perceptrons[i].SetValue(values[i]);
+        }
+    }
+
+    public void FireLayer() {
+        int size;
+
+        if (layerType == OUTPUT_LAYER) {
+            size = perceptrons.Length;
+        }
+        else {
+            size = perceptrons.Length - 1;
+        }
+
+        for (int i = 0; i < size; i++) {
+            perceptrons[i].FeedForward(previousLayer.perceptrons);
+        }
+    }
+
+    public float[] GetAllPerceptronValues() {
+        float[] values = new float[perceptrons.Length];
+
+        for (int i = 0; i < perceptrons.Length; i++) {
+            values[i] = perceptrons[i].GetValue();
+        }
+
+        return values;
+    }
+
     //set weight size for each perceptron with given number of connections
-    public void SetWeightsConnection(int numberOFConnections) {
+    private void SetWeightsConnection(int numberOFConnections) {
         for (int i = 0; i < perceptrons.Length; i++) {
             perceptrons[i].SetPerceptronWeights(numberOFConnections);
         }
     }
+
+    public void SetRandomWeights() {
+        for (int i = 0; i < perceptrons.Length; i++) {
+            perceptrons[i].SetRandomWeights();
+        }
+    }
+
 
 }

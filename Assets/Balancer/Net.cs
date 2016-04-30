@@ -3,11 +3,13 @@ using System.Collections;
 
 public class Net  {
 
+    private int inputLayerIndex = 0;
+    private int outputLayerIndex;
     private int numberOfInputPerceptrons;
     private int numberOfOutputPerceptrons;
     private int numberOfHiddenLayers;
     private int numberOfHiddenPerceptrons;
-
+    
     private Layer[] layers;
 
     public Net(int numberOfInputPerceptrons, int numberOfOutputPerceptrons, int numberOfHiddenLayers, int numberOfHiddenPerceptrons) {
@@ -17,8 +19,9 @@ public class Net  {
         this.numberOfHiddenPerceptrons = numberOfHiddenPerceptrons;
 
         layers = new Layer[2+numberOfHiddenLayers];
+        this.outputLayerIndex = layers.Length - 1;
 
-        layers[0] = new Layer(numberOfInputPerceptrons);
+        layers[inputLayerIndex] = new Layer(numberOfInputPerceptrons);
          
         for (int i = 1; i < layers.Length; i++) {
             if (IsOutputLayer(i)) {
@@ -26,11 +29,11 @@ public class Net  {
                 layers[i] = new Layer(numberOfOutputPerceptrons, layers[i - 1], Layer.OUTPUT_LAYER);
             }
             else {
+
                 //if this layer is the input layer
                 layers[i] = new Layer(numberOfHiddenPerceptrons, layers[i - 1], Layer.HIDDEN_LAYER);
             }
         }
-        
     }
 
     //given index return true or false whether given index corresponds to the hidden layer
@@ -59,4 +62,22 @@ public class Net  {
         else
             return false;
     }
+
+    //calculate net results 
+    public float[] FireNet(float[] inputValues) {
+        layers[inputLayerIndex].SetPerceptronValues(inputValues);
+
+        for (int i = 1; i < layers.Length; i++) {
+            layers[i].FireLayer();
+        }
+
+        return layers[outputLayerIndex].GetAllPerceptronValues();
+    }
+
+    public void SetRandomWeights() {
+        for (int i = 0; i < outputLayerIndex; i++) {
+            layers[i].SetRandomWeights();
+        }
+    }
 }
+ 
