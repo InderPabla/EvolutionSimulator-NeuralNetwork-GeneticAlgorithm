@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System;
 
 public class Balancer : MonoBehaviour {
 
@@ -8,20 +8,30 @@ public class Balancer : MonoBehaviour {
     public Rigidbody2D pole2Rigidbody;
 
     private Net net;
-	
-	void Start () {
+    private bool isActive = false;
 
-        net = new Net(6,1,10,10);
-        net.SetRandomWeights();
-        
+    public delegate void TestFinishedEventHandler(object source, EventArgs args);
+    public event TestFinishedEventHandler TestFinished;
+
+    void Start () {
+
+        /*net = new Net(6,1,10,10);
+        net.SetRandomWeights();*/
 	}
-	
-	void Update () {
-        UpdateNet(); //update neural net
 
-        if (FailCheck() == true) {
-            FailAction();
+	void Update () {
+        if (isActive == true) {
+            UpdateNet(); //update neural net
+
+            if (FailCheck() == true) {
+                OnFinished();
+            }
         }
+    }
+
+    public void Activate(Net net){
+        this.net = net;
+        isActive = true;
     }
 
     //Updates nerual net with new inputs from the balancer 
@@ -41,6 +51,8 @@ public class Balancer : MonoBehaviour {
         float[] output = net.FireNet(inputValues); //caluclate new neural net output with given input values
 
         trackRigidbody.velocity += new Vector2(output[0], 0); //update track velocity with neural net output
+
+        net.AddNetFitness(Time.deltaTime);
     }
 
     //restrictions on the test to fail bad neural networks faster
@@ -64,9 +76,10 @@ public class Balancer : MonoBehaviour {
     }
 
     //action based on neural net faling the test
-    private void FailAction() {
-        Destroy(gameObject);
+    protected virtual void OnFinished() {
+        if (TestFinished != null) {
+            TestFinished(net, EventArgs.Empty);
+            Destroy(gameObject);
+        }
     }
-
-
 }

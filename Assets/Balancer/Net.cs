@@ -1,16 +1,18 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Net  {
 
     private int inputLayerIndex = 0;
     private int outputLayerIndex;
+
     private int numberOfInputPerceptrons;
     private int numberOfOutputPerceptrons;
     private int numberOfHiddenLayers;
     private int numberOfHiddenPerceptrons;
     
     private Layer[] layers;
+
+    private float netFitness;
 
     public Net(int numberOfInputPerceptrons, int numberOfOutputPerceptrons, int numberOfHiddenLayers, int numberOfHiddenPerceptrons) {
         this.numberOfInputPerceptrons = numberOfInputPerceptrons;
@@ -34,6 +36,8 @@ public class Net  {
                 layers[i] = new Layer(numberOfHiddenPerceptrons, layers[i - 1], Layer.HIDDEN_LAYER);
             }
         }
+
+        this.netFitness = 0;
     }
 
     //given index return true or false whether given index corresponds to the hidden layer
@@ -78,6 +82,18 @@ public class Net  {
         for (int i = 0; i < outputLayerIndex; i++) {
             layers[i].SetRandomWeights();
         }
+    }
+
+    public void AddNetFitness(float fitness){
+        netFitness += fitness;
+    }
+
+    public void SetNetFitness(float fitness){
+        netFitness = fitness;
+    }
+
+    public float GetNetFitness() {
+        return netFitness;
     }
 }
  

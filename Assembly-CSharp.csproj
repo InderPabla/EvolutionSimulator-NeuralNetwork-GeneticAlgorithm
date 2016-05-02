@@ -46,6 +46,8 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Balancer\Balancer.cs" />
+     <Compile Include="Assets\Balancer\GeneticController.cs" />
+     <Compile Include="Assets\Balancer\GeneticNetTester.cs" />
      <Compile Include="Assets\Balancer\Layer.cs" />
      <Compile Include="Assets\Balancer\Net.cs" />
      <Compile Include="Assets\Balancer\Perceptron.cs" />
