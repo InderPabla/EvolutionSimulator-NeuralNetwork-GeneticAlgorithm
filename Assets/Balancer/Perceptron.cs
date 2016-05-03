@@ -17,6 +17,21 @@ public class Perceptron {
     private int perceptronType; //perceptron type
     private int perceptronIndex; //perceptron's index within its layer
 
+    public Perceptron(Perceptron copyPerceptron) {
+        this.value = copyPerceptron.value;  
+        this.perceptronType = copyPerceptron.perceptronType; 
+        this.perceptronIndex = copyPerceptron.perceptronIndex;
+
+        if (copyPerceptron.weights != null) {
+            this.weights = new float[copyPerceptron.weights.Length];
+            for (int i = 0; i < this.weights.Length; i++){
+                this.weights[i] = copyPerceptron.weights[i];
+            }
+        }
+
+        
+    }
+
     public Perceptron(int type, int index) {
         this.perceptronType = type;
         this.perceptronIndex = index;
@@ -42,7 +57,7 @@ public class Perceptron {
 
     //Calculate new value for this perceptron based on previous layer's connection weights
     public void FeedForward(Perceptron[] previousLayerPerceptrons) {
-        value = 0;
+        //value = 0;
         for (int i = 0; i < previousLayerPerceptrons.Length; i++) {
             value += previousLayerPerceptrons[i].weights[perceptronIndex] * previousLayerPerceptrons[i].value;
         }
@@ -67,6 +82,15 @@ public class Perceptron {
             float a = Mathf.Exp(x);
             float b = Mathf.Exp(-x);
             return (a - b) / (a + b);
+        }
+    }
+
+    public void PerceptronMutate(){
+        for (int i = 0; i <weights.Length; i++){
+            int randomRate = Random.Range(0,25);
+            if (randomRate == 0) {
+                weights[i] = Random.Range(HYPERBOLIC_TANGENT_LOWER_INPUT, HYPERBOLIC_TANGENT_UPPER_INPUT);
+            }
         }
     }
 }

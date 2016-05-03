@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class Net  {
 
@@ -9,17 +10,44 @@ public class Net  {
     private int numberOfOutputPerceptrons;
     private int numberOfHiddenLayers;
     private int numberOfHiddenPerceptrons;
-    
-    private Layer[] layers;
 
     private float netFitness;
+    private float netTestTime;
+    private int netID;
 
-    public Net(int numberOfInputPerceptrons, int numberOfOutputPerceptrons, int numberOfHiddenLayers, int numberOfHiddenPerceptrons) {
+    private Layer[] layers;
+
+    
+
+    //Deep copy constructor 
+    public Net(Net copyNet) {
+        this.inputLayerIndex = copyNet.inputLayerIndex;
+        this.outputLayerIndex = copyNet.outputLayerIndex;
+        
+        this.numberOfInputPerceptrons = copyNet.numberOfInputPerceptrons;
+        this.numberOfOutputPerceptrons = copyNet.numberOfOutputPerceptrons;
+        this.numberOfHiddenLayers = copyNet.numberOfHiddenLayers;
+        this.numberOfHiddenPerceptrons = copyNet.numberOfHiddenPerceptrons;
+
+        this.netFitness = copyNet.netFitness;
+        this.netTestTime = copyNet.netTestTime;
+        this.netID = copyNet.netID;
+
+        this.layers = new Layer[2 + this.numberOfHiddenLayers];
+        this.layers[this.inputLayerIndex] = new Layer(copyNet.layers[this.inputLayerIndex]);
+        for (int i = 1; i < this.layers.Length; i++) {
+            this.layers[i] = new Layer(copyNet.layers[i], this.layers[i - 1]);
+        }
+    }
+
+    public Net(int netID, int numberOfInputPerceptrons, int numberOfOutputPerceptrons, int numberOfHiddenLayers, int numberOfHiddenPerceptrons, float netTestTime) {
+        this.netID = netID;
         this.numberOfInputPerceptrons = numberOfInputPerceptrons;
         this.numberOfOutputPerceptrons = numberOfOutputPerceptrons;
         this.numberOfHiddenLayers = numberOfHiddenLayers;
         this.numberOfHiddenPerceptrons = numberOfHiddenPerceptrons;
-
+        this.netTestTime = netTestTime;
+        
         layers = new Layer[2+numberOfHiddenLayers];
         this.outputLayerIndex = layers.Length - 1;
 
@@ -31,13 +59,12 @@ public class Net  {
                 layers[i] = new Layer(numberOfOutputPerceptrons, layers[i - 1], Layer.OUTPUT_LAYER);
             }
             else {
-
                 //if this layer is the input layer
                 layers[i] = new Layer(numberOfHiddenPerceptrons, layers[i - 1], Layer.HIDDEN_LAYER);
             }
         }
 
-        this.netFitness = 0;
+        this.netFitness = 0;      
     }
 
     //given index return true or false whether given index corresponds to the hidden layer
@@ -57,6 +84,8 @@ public class Net  {
         else
             return false;
     }
+
+    
 
     //given index return true or false whether given index corresponds to the hidden layer
     public bool IsHiddenLayer(int index) {
@@ -94,6 +123,51 @@ public class Net  {
 
     public float GetNetFitness() {
         return netFitness;
+    }
+
+    public float GetNetTestTime() {
+        return netTestTime;
+    }
+
+    public void SetNetID(int id) {
+        this.netID = id;
+    }
+
+    public int GetNetID(){
+        return netID;
+    }
+
+    public int GetNumberOfLayers() {
+        return layers.Length;
+    }
+
+    public void NetMutate() {
+        for (int i = 0; i < layers.Length-1; i++) {
+            layers[i].LayerMutate();  
+        }
+    }
+
+    internal static Net[] CrossOver(Net net1, Net net2) {
+        Net[] children = new Net[2];
+        children[0] = new Net(net1);
+        children[1] = new Net(net2);
+
+        children[0].NetMutate();
+        children[1].NetMutate();
+        /*int numberOfLayers = net1.numberOfHiddenLayers + 2;
+
+        for (int i = 0; i < numberOfLayers-1; i++) {
+            int numberOfPerceptrons = net1.layers[i].GetNumberOfPerceptrons();
+            
+        }*/
+
+        return children;
+    }
+
+    public void ClearPerceptronValues() {
+        for (int i = 0; i < layers.Length; i++){
+            layers[i].ClearPerceptronValues();
+        }
     }
 }
  

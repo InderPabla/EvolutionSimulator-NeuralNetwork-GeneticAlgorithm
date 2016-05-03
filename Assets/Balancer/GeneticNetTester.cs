@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class GeneticNetTester  {
 
-    private int numberOfInputPerceptrons;
+    /*private int numberOfInputPerceptrons;
     private int numberOfOutputPerceptrons;
     private int numberOfHiddenPerceptrons;
     private int numberOfHiddenLayers;
@@ -29,7 +29,7 @@ public class GeneticNetTester  {
     public void OnFinished(object source, EventArgs e){
         Net net = (Net)source;
         Debug.Log(net.GetNetFitness()+" Fit");
-    }
+    }*/
 
 
 }

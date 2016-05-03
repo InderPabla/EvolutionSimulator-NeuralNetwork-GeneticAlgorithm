@@ -14,6 +14,29 @@ public class Layer {
 
     private int layerType; //this layers type
 
+    //Deepy copy constructor  1
+    public Layer(Layer copyLayer) {
+        this.numberOfPerceptrons = copyLayer.numberOfPerceptrons;
+        this.layerType = copyLayer.layerType;
+
+        this.perceptrons = new Perceptron[this.numberOfPerceptrons];
+        for (int i = 0; i < this.numberOfPerceptrons; i++) {
+            this.perceptrons[i] = new  Perceptron(copyLayer.perceptrons[i]);
+        }
+    }
+
+    //Deepy copy constructor  2
+    public Layer(Layer copyLayer, Layer previousLayer) {
+        this.numberOfPerceptrons = copyLayer.numberOfPerceptrons;
+        this.previousLayer = previousLayer;
+        this.layerType = copyLayer.layerType;
+
+        this.perceptrons = new Perceptron[this.numberOfPerceptrons];
+        for (int i = 0; i < this.numberOfPerceptrons; i++) {
+            this.perceptrons[i] = new Perceptron(copyLayer.perceptrons[i]);
+        }
+    }
+
     //This is the constructor for input layer since it does not need a previous layer
     public Layer(int numberOfPerceptrons) {
         this.numberOfPerceptrons = numberOfPerceptrons;
@@ -118,5 +141,26 @@ public class Layer {
         }
     }
 
+    public int GetNumberOfPerceptrons() {
+        return numberOfPerceptrons;
+    }
+
+    public void LayerMutate() {
+        for (int i = 0; i < perceptrons.Length; i++) {
+            perceptrons[i].PerceptronMutate();
+        }
+    }
+
+    public void ClearPerceptronValues(){
+        int size;
+        if (layerType == OUTPUT_LAYER)
+            size = perceptrons.Length;
+        else
+            size = perceptrons.Length - 1;
+
+        for (int i = 0; i < size; i++){
+            perceptrons[i].SetValue(0);
+        }
+    }
 
 }
