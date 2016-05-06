@@ -163,4 +163,12 @@ public class Layer {
         }
     }
 
+    internal static void CrossOver(Layer layer1, Layer layer2)
+    {
+        int numberOfPerceptrons = layer1.numberOfPerceptrons;
+        for (int i = 0; i < numberOfPerceptrons; i++) {
+            Perceptron.CrossOver(layer1.perceptrons[i], layer2.perceptrons[i]);
+        }
+    }
+
 }

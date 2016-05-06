@@ -30,7 +30,7 @@ public class Agent : MonoBehaviour {
 
     public void Activate(Net net){
         this.net = net;
-        Invoke(ON_FINISHED,net.GetNetTestTime());
+        Invoke(ON_FINISHED,(float)net.GetNetTestTime());
         isActive = true;
     }
 
@@ -51,11 +51,10 @@ public class Agent : MonoBehaviour {
         float pole1AngularVelocity = bodies[1].angularVelocity;
         float[] inputValues = { boardVelocity, pole1AngleRadian, pole1AngularVelocity };
         float[] output = net.FireNet(inputValues);
-        bodies[0].velocity += new Vector2(output[0], 0);
+        bodies[0].velocity += new Vector2(output[0]/10f, 0);
         net.AddNetFitness(Time.deltaTime);*/
 
         float boardVelocity = bodies[0].velocity.x; //get current velocity of the board
-
         //both poles angles in radians
         float pole1AngleRadian = Mathf.Deg2Rad * bodies[1].transform.eulerAngles.z; 
         float pole2AngleRadian = Mathf.Deg2Rad * bodies[2].transform.eulerAngles.z; 
@@ -69,8 +68,32 @@ public class Agent : MonoBehaviour {
         float[] output = net.FireNet(inputValues); //caluclate new neural net output with given input values
 
         bodies[0].velocity += new Vector2(output[0], 0); //update track velocity with neural net output
-
         net.AddNetFitness(Time.deltaTime);
+
+        /*float angle = bodies[1].transform.eulerAngles.z;
+
+        if (angle > 270f || angle < 90f)
+        {
+            float bonus = 1f;
+            if (angle > 270f)
+            {
+                bonus += ((90f-(360-angle)) / 90f);
+            }
+            else {
+                bonus += ((90f - angle)/90f);
+            }
+            net.AddNetFitness((Time.deltaTime)*bonus);
+            up = true;
+        }
+
+        float boardVelocity = bodies[0].velocity.x; //get current velocity of the board
+        float pole1AngleRadian = Mathf.Deg2Rad * bodies[1].transform.eulerAngles.z;
+        float pole1AngularVelocity = bodies[1].angularVelocity;
+        float[] inputValues = { boardVelocity, pole1AngleRadian, pole1AngularVelocity };
+        float[] output = net.FireNet(inputValues);
+        bodies[0].velocity += new Vector2(output[0]/5f, 0);*/
+
+        
     }
 
     //--Add your own neural net fail code here--//
@@ -95,9 +118,9 @@ public class Agent : MonoBehaviour {
         if (inControl == true && onTrack == true)
             return false;
         else
-            return true; */
+            return true;*/
 
-        int failDegree = 85;
+        float failDegree = 50;
 
         float pole1AngleDegree = bodies[1].transform.eulerAngles.z;
         float pole2AngleDegree = bodies[2].transform.eulerAngles.z;
@@ -121,6 +144,10 @@ public class Agent : MonoBehaviour {
         else
             //one or both the pole(s) have fallen below 45 degrees or have fallen below 0 y, thus fail is true
             return true;
+
+
+
+        return false;
 
     }
 

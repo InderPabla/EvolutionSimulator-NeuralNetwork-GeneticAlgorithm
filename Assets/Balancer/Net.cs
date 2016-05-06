@@ -17,8 +17,6 @@ public class Net  {
 
     private Layer[] layers;
 
-    
-
     //Deep copy constructor 
     public Net(Net copyNet) {
         this.inputLayerIndex = copyNet.inputLayerIndex;
@@ -28,7 +26,7 @@ public class Net  {
         this.numberOfOutputPerceptrons = copyNet.numberOfOutputPerceptrons;
         this.numberOfHiddenLayers = copyNet.numberOfHiddenLayers;
         this.numberOfHiddenPerceptrons = copyNet.numberOfHiddenPerceptrons;
-
+   
         this.netFitness = copyNet.netFitness;
         this.netTestTime = copyNet.netTestTime;
         this.netID = copyNet.netID;
@@ -149,18 +147,27 @@ public class Net  {
 
     internal static Net[] CrossOver(Net net1, Net net2) {
         Net[] children = new Net[2];
+
         children[0] = new Net(net1);
         children[1] = new Net(net2);
 
+        int numberOfLayers = net1.numberOfHiddenLayers + 2;
+
+        for (int i = 0; i < numberOfLayers - 1; i++) {
+            Layer.CrossOver(children[0].layers[i], children[1].layers[i]);
+        }
+        //net1.NetMutate();
+        //net2.NetMutate();
         children[0].NetMutate();
         children[1].NetMutate();
+
+
         /*int numberOfLayers = net1.numberOfHiddenLayers + 2;
 
         for (int i = 0; i < numberOfLayers-1; i++) {
             int numberOfPerceptrons = net1.layers[i].GetNumberOfPerceptrons();
             
         }*/
-
         return children;
     }
 

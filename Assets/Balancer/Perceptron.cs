@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 public class Perceptron {
 
@@ -28,8 +29,7 @@ public class Perceptron {
                 this.weights[i] = copyPerceptron.weights[i];
             }
         }
-
-        
+   
     }
 
     public Perceptron(int type, int index) {
@@ -61,36 +61,55 @@ public class Perceptron {
         for (int i = 0; i < previousLayerPerceptrons.Length; i++) {
             value += previousLayerPerceptrons[i].weights[perceptronIndex] * previousLayerPerceptrons[i].value;
         }
-        value = tanh(value);
+        value = /*Math.Tanh(value);*/tanh(value);
     }
 
     public void SetRandomWeights() {
         for (int i = 0; i < weights.Length; i++) {
-            weights[i] = Random.Range(HYPERBOLIC_TANGENT_LOWER_INPUT, HYPERBOLIC_TANGENT_UPPER_INPUT);
+            weights[i] = /*GetRandomNumber(HYPERBOLIC_TANGENT_LOWER_INPUT, HYPERBOLIC_TANGENT_UPPER_INPUT);*/UnityEngine.Random.Range(HYPERBOLIC_TANGENT_LOWER_INPUT, HYPERBOLIC_TANGENT_UPPER_INPUT);
         }
     }
 
     //hyperbolic tangent approximation
     private float tanh(float x){
-        if (x > HYPERBOLIC_TANGENT_UPPER_INPUT) {
-            return 1;
+        /*if (x > HYPERBOLIC_TANGENT_UPPER_INPUT) {
+            return 1f;
         }
         else if (x < HYPERBOLIC_TANGENT_LOWER_INPUT) {
             return -1f;
         }
-        else {
-            float a = Mathf.Exp(x);
-            float b = Mathf.Exp(-x);
-            return (a - b) / (a + b);
-        }
+        else {*/
+        /*float a = Mathf.Exp(x);
+        float b = Mathf.Exp(-x);
+        return (a - b) / (a + b);*/
+        double h = Math.Tanh(x);
+        return (float)h;
+
+      // }
     }
 
     public void PerceptronMutate(){
         for (int i = 0; i <weights.Length; i++){
-            int randomRate = Random.Range(0,25);
+            int randomRate = UnityEngine.Random.Range(0,100);
             if (randomRate == 0) {
-                weights[i] = Random.Range(HYPERBOLIC_TANGENT_LOWER_INPUT, HYPERBOLIC_TANGENT_UPPER_INPUT);
+                weights[i] = /*GetRandomNumber(HYPERBOLIC_TANGENT_LOWER_INPUT, HYPERBOLIC_TANGENT_UPPER_INPUT);*/UnityEngine.Random.Range(HYPERBOLIC_TANGENT_LOWER_INPUT, HYPERBOLIC_TANGENT_UPPER_INPUT);
             }
+        }
+    }
+
+    /*public float GetRandomNumber(float minimum, float maximum)
+    {
+        System.Random random = new System.Random();
+        return random.Nextfloat() * (maximum - minimum) + minimum;
+    }*/
+
+    internal static void CrossOver(Perceptron perceptron1, Perceptron perceptron2)
+    {
+        int numberOfWeights = perceptron1.weights.Length;
+        for (int i = 0; i < numberOfWeights; i++) {
+            float tempWeight = perceptron1.weights[i];
+            perceptron1.weights[i] = perceptron2.weights[i];
+            perceptron2.weights[i] = tempWeight;
         }
     }
 }

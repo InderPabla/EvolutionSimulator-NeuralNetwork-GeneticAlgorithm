@@ -98,8 +98,8 @@ public class GeneticController : MonoBehaviour {
             nets[i].SetNetID(i);
             nets[i].ClearPerceptronValues();
         }
-        Invoke("GeneratePopulation",1);
-        //GeneratePopulation();
+        //Invoke("GeneratePopulation",1);
+        GeneratePopulation();
     }
 
     public List<int> GenerateListNumbers(int min, int max) {
