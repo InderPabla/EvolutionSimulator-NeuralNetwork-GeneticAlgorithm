@@ -1,10 +1,16 @@
 ﻿
+using UnityEngine;
+
 public class Layer {
 
     // constants for types of layers
     public const int INPUT_LAYER = 0; 
     public const int OUTPUT_LAYER = 1;
     public const int HIDDEN_LAYER = 2;
+
+    public const int LAYER_FULL_CROSSOVER = 0;
+    public const int LAYER_PARTIAL_CROSSOVER = 1;
+    public const int LAYER_PARTIAL_PERCEPTRON_CROSSOVER = 2;
 
     private Layer previousLayer; //previous layer pointer which will be used to feedforward the neural network
 
@@ -118,6 +124,51 @@ public class Layer {
         }
     }
 
+    public void BackwardPassLayer(float[] error) {
+        float[] deltaOutput = new float[perceptrons.Length];
+
+        if (layerType == OUTPUT_LAYER) {
+            
+            for (int i = 0; i < deltaOutput.Length; i++) {
+                //deltaOutput[i] = error[i] * (1f - Mathf.Pow(perceptrons[i].GetValue(), 2f));
+                deltaOutput[i] = error[i] * (perceptrons[i].GetValue() - Mathf.Pow(perceptrons[i].GetValue(), 2f));
+            }
+
+            previousLayer.UpdateWeights(deltaOutput);
+        }
+        else {
+
+            for (int i = 0; i < deltaOutput.Length; i++) {
+                float del = 0;
+                for (int j = 0; j < error.Length; j++) {
+                    del += error[j] * perceptrons[i].GetWeightAtIndex(j);
+                }
+
+                //deltaOutput[i] = del*(1f - Mathf.Pow(perceptrons[i].GetValue(), 2f));
+                deltaOutput[i] = del * (perceptrons[i].GetValue() - Mathf.Pow(perceptrons[i].GetValue(), 2f));
+            }
+            previousLayer.UpdateWeights(deltaOutput);
+        }
+
+        if (previousLayer.layerType != INPUT_LAYER) {
+            previousLayer.BackwardPassLayer(deltaOutput);
+        }
+    }
+
+    public void UpdateWeights(float[] delta) {
+        for (int i = 0; i < perceptrons.Length; i++) {
+            perceptrons[i].BackwardPassPerceptron(delta);
+        }
+    }
+
+    public void UpdateBackwardPass()
+    {
+        for (int i = 0; i < perceptrons.Length; i++)
+        {
+            perceptrons[i].UpdateBackwardPass();
+        }
+    }
+
     public float[] GetAllPerceptronValues() {
         float[] values = new float[perceptrons.Length];
 
@@ -163,11 +214,37 @@ public class Layer {
         }
     }
 
-    internal static void CrossOver(Layer layer1, Layer layer2)
-    {
+    internal static void CrossOver(Layer layer1, Layer layer2, int type) {
         int numberOfPerceptrons = layer1.numberOfPerceptrons;
-        for (int i = 0; i < numberOfPerceptrons; i++) {
-            Perceptron.CrossOver(layer1.perceptrons[i], layer2.perceptrons[i]);
+
+        if (type == LAYER_FULL_CROSSOVER) {
+
+            for (int i = 0; i < numberOfPerceptrons; i++) {
+                Perceptron.CrossOver(layer1.perceptrons[i], layer2.perceptrons[i],Perceptron.SWAP);
+            }
+
+        }
+        else if (type == LAYER_PARTIAL_CROSSOVER) {
+            int randomIndex = UnityEngine.Random.Range(0, numberOfPerceptrons);
+
+            if (randomIndex == numberOfPerceptrons - 1) {
+                for (int i = 0; i < numberOfPerceptrons; i++) {
+                    Perceptron.CrossOver(layer1.perceptrons[i], layer2.perceptrons[i], Perceptron.SWAP);
+                }
+            }
+            else{
+                for (int i = 0; i <=randomIndex; i++){
+                    Perceptron.CrossOver(layer1.perceptrons[i], layer2.perceptrons[i], Perceptron.ONE_WAY);
+                }
+                for (int i = randomIndex+1; i < numberOfPerceptrons; i++)
+                {
+                    Perceptron.CrossOver(layer2.perceptrons[i], layer1.perceptrons[i], Perceptron.ONE_WAY);
+                }
+            }
+
+        }
+        else if (type == LAYER_PARTIAL_PERCEPTRON_CROSSOVER) {
+
         }
     }
 

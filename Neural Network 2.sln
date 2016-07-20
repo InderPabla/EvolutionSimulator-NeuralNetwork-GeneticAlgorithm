@@ -1,7 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2008
 
-Project("{9B8C887F-A80E-1D96-0520-64423091387A}") = "Neural Network", "Assembly-CSharp.csproj", "{C8C72679-0028-24E7-AC7A-DE6E23030144}"
+Project("{69DC1F52-00BD-B615-BDE3-6AFFAAE7D635}") = "Neural Network 2", "Assembly-CSharp.csproj", "{A9516F8D-63CA-EF44-CEEA-85BC7723FCF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,15 +9,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C8C72679-0028-24E7-AC7A-DE6E23030144}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C8C72679-0028-24E7-AC7A-DE6E23030144}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C8C72679-0028-24E7-AC7A-DE6E23030144}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C8C72679-0028-24E7-AC7A-DE6E23030144}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9516F8D-63CA-EF44-CEEA-85BC7723FCF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9516F8D-63CA-EF44-CEEA-85BC7723FCF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9516F8D-63CA-EF44-CEEA-85BC7723FCF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9516F8D-63CA-EF44-CEEA-85BC7723FCF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-																																																																																																																																																																																																																																		GlobalSection(MonoDevelopProperties) = preSolution
+																		GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Assembly-CSharp.csproj
 		Policies = $0
 		$0.TextStylePolicy = $1

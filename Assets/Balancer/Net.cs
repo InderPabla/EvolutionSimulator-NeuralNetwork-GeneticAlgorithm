@@ -1,5 +1,6 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
+using System;
+
 
 public class Net  {
 
@@ -105,6 +106,32 @@ public class Net  {
         return layers[outputLayerIndex].GetAllPerceptronValues();
     }
 
+    public void BackwardPassNet(float[] output, float[] target) {
+        float[] error = new float[output.Length];
+        float errorTotal = 0f;
+
+        for (int i = 0; i < error.Length; i++) {
+            error[i] = 0.5f*Mathf.Pow((target[i] - output[i]), 2);
+            errorTotal += error[i];
+            error[i] = (output[i]- target[i]);//change to the derivative
+        }
+
+        layers[layers.Length - 1].BackwardPassLayer(error);
+        /*for (int i = layers.Length -1; i >=0; i--) {
+            layers[i].BackwardPassLayer(error);
+        }*/
+    }
+
+    public void UpdateBackwardPass() {
+        for (int i = 0; i < layers.Length -1; i++) {
+            layers[i].UpdateBackwardPass();
+        }
+    }
+
+    public float TanHDerv(float value) {
+        return (float)(1.0 - Math.Pow(Math.Tanh(value),2.0));
+    }
+
     public void SetRandomWeights() {
         for (int i = 0; i < outputLayerIndex; i++) {
             layers[i].SetRandomWeights();
@@ -153,21 +180,15 @@ public class Net  {
 
         int numberOfLayers = net1.numberOfHiddenLayers + 2;
 
+        //int crossoverType = UnityEngine.Random.Range(Layer.LAYER_FULL_CROSSOVER, Layer.LAYER_PARTIAL_PERCEPTRON_CROSSOVER+1);
+        int crossoverType = UnityEngine.Random.Range(0, 2);
         for (int i = 0; i < numberOfLayers - 1; i++) {
-            Layer.CrossOver(children[0].layers[i], children[1].layers[i]);
+            Layer.CrossOver(children[0].layers[i], children[1].layers[i],crossoverType);
         }
-        //net1.NetMutate();
-        //net2.NetMutate();
+        
         children[0].NetMutate();
         children[1].NetMutate();
 
-
-        /*int numberOfLayers = net1.numberOfHiddenLayers + 2;
-
-        for (int i = 0; i < numberOfLayers-1; i++) {
-            int numberOfPerceptrons = net1.layers[i].GetNumberOfPerceptrons();
-            
-        }*/
         return children;
     }
 

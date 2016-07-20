@@ -16,25 +16,56 @@ public class GeneticController : MonoBehaviour {
     public float testTime = 0;
 
     private Net[] nets; //array of neural networks 
-    private int[] finishedNetID;
+    private float[,] finishedNetID;
     private int testCounter; //counter for population testing
     private Semaphore finished; //mutex lock for when test if finished and updating test counter
     private const string ACTIVATE = "Activate";
     private int generationNumber = 0;
 
     void Start () {
-        Application.runInBackground = true;
+        /*Application.runInBackground = true;
         if (ErrorCheck() == false) {
             testCounter = 0;
             finished = new Semaphore(1, 1);
             nets = new Net[populationSize];
-            finishedNetID = new int[populationSize];
+            finishedNetID = new float[populationSize,2];
 
             GenerateInitialNets();
             GeneratePopulation();
+        }*/
+
+        //float[][] XOR_QUESTION = { new float[]{0, 0}, new float[] { 0, 1}, new float[] { 1, 0}, new float[] { 1, 1} };
+        //float[][] XOR_ANSWER = { new float[] { 0f }, new float[] { 1f }, new float[] { 1f }, new float[] { 0f } };
+
+        float[][] XOR_QUESTION = {new float[] {0,0,0}, new float[] {0,0,1}, new float[] {0,1,0}, new float[] {0,1,1},
+            new float[] {1,0,0}, new float[] {1,0,1}, new float[] {1,1,0}, new float[] {1,1,1} };
+        float[][] XOR_ANSWER = { new float[] { 0f }, new float[] { 1f }, new float[] { 1f }, new float[] { 0f },
+            new float[] { 1f }, new float[] { 0f }, new float[] { 0f }, new float[] { 1f } };
+
+        Net net = new Net(0, numberOfInputPerceptrons, numberOfOutputPerceptrons, numberOfHiddenLayers, numberOfHiddenPerceptrons, 0f);
+        net.SetRandomWeights();
+
+        for (int i = 0; i < 100000; i++)
+        {
+            int randomIndex = UnityEngine.Random.Range(0, 8);
+            float[] input = XOR_QUESTION[randomIndex];
+            float[] answer = XOR_ANSWER[randomIndex];
+            float[] output = net.FireNet(input);
+
+            net.BackwardPassNet(output, XOR_ANSWER[randomIndex]);
+            net.UpdateBackwardPass();
+
+            //Debug.Log("Input: " + input[0] + " " + input[1] + " " + answer[0] + " " + output[0]);
         }
-    }
-	
+        Debug.Log("@@@@@Test@@@@@@");
+        for (int i = 0; i < 8; i++)
+        {
+            float[] input = XOR_QUESTION[i];
+            float[] answer = XOR_ANSWER[i];
+            float[] output = net.FireNet(input);
+            Debug.Log("Input: " + input[0]+" "+input[1]+" " +input[2]+" Answer: "+answer[0]+" Out: "+output[0]+" Err: "+Mathf.Abs(answer[0]-output[0]));
+        }
+	}
 	void Update () {
 	
 	}
@@ -49,6 +80,7 @@ public class GeneticController : MonoBehaviour {
     public void GeneratePopulation() {
         for (int i = 0; i < populationSize; i++) {
             GameObject agent = (GameObject)Instantiate(testPrefab, new Vector3(0, /*(-populationSize/2)+i*/0, 0), testPrefab.transform.rotation);
+            agent.name = i+"";
             agent.SendMessage(ACTIVATE, nets[i]);
             agent.GetComponent<Agent>().TestFinished += OnFinished; //suscribe OnFinished to event in Balancer
         }
@@ -57,7 +89,8 @@ public class GeneticController : MonoBehaviour {
     public void OnFinished(object source, EventArgs e) {
         finished.WaitOne();
 
-        finishedNetID[testCounter] = (int)source;
+        finishedNetID[testCounter,0] = (int)source;
+        finishedNetID[testCounter,1] = nets[(int)source].GetNetFitness();
         testCounter++;
         if (testCounter == populationSize) {
             TestFinished();
@@ -76,11 +109,13 @@ public class GeneticController : MonoBehaviour {
         Net[] newNets = new Net[populationSize];
         int pairIndex = 0;
 
-        Debug.Log("Generation Number: "+generationNumber+", Best Fitness: "+ nets[finishedNetID[populationSize-1]].GetNetFitness());
+        SortFitness();
+        Debug.Log("Generation Number: "+generationNumber+", Best Fitness: "+ finishedNetID[populationSize-1,1]);
+        
 
         for (int i = 0; i < newNets.Length; i+=4) {
-            int index1 = finishedNetID[paires[pairIndex, 0]];
-            int index2 = finishedNetID[paires[pairIndex, 1]];
+            int index1 = (int)finishedNetID[paires[pairIndex, 0],0];
+            int index2 = (int)finishedNetID[paires[pairIndex, 1],0];
 
             Net[] corssover = Net.CrossOver(nets[index1], nets[index2]);
 
@@ -102,6 +137,35 @@ public class GeneticController : MonoBehaviour {
         GeneratePopulation();
     }
 
+    public void SortFitness()
+    {
+        float[] tempFitness = new float[2];
+        bool swapped = true;
+        int j = 0;
+        while (swapped)
+        {
+            swapped = false;
+            j++;
+            for (int i = 0; i < populationSize - j; i++)
+            {
+                if (finishedNetID[i, 1] < finishedNetID[i + 1, 1])
+                {
+                    tempFitness[0] = finishedNetID[i, 0];
+                    tempFitness[1] = finishedNetID[i, 1];
+
+                    finishedNetID[i, 0] = finishedNetID[i + 1, 0];
+                    finishedNetID[i, 1] = finishedNetID[i + 1, 1];
+
+                    finishedNetID[i + 1, 0] = tempFitness[0];
+                    finishedNetID[i + 1, 1] = tempFitness[1];
+                    swapped = true;
+                }
+            }
+        }
+
+        /*for (int i = 0; i <populationSize; i++)
+            Debug.Log(finishedNetID[i, 1]);*/
+    }
     public List<int> GenerateListNumbers(int min, int max) {
         List<int> unusedIndicies = new List<int>();
         for (int i = min; i <= max; i++) {
@@ -131,6 +195,8 @@ public class GeneticController : MonoBehaviour {
 
         return paires;
     }
+
+
 
     public bool ErrorCheck() {
         bool error = false;
