@@ -5,10 +5,12 @@ using System;
 //Fast neural network based on matrix operations 
 public class Brain {
 
-    float[][] neurons;
-    float[][][] weights;
-    int[] layers;
-    float bias = 0.25f;
+    private float[][] neurons;
+    private float[][][] weights;
+    private int[] layers;
+    private float bias = 0.25f;
+    private string name;
+
     public Brain(int[] lay)
     {
         //deep copy layers array
@@ -20,6 +22,7 @@ public class Brain {
         //init neurons and weights matrix
         InitilizeNeurons(); 
         InitilizeWeights();
+        GenerateRandomName();
     }
 
     //create a static neuron matrix
@@ -109,6 +112,50 @@ public class Brain {
 
     private float tanh(float value) {
         return (float)Math.Tanh(value);
+        //return value;
     }
+
+    public void GenerateRandomName()
+    {
+        int nameSize = UnityEngine.Random.Range(3, 11);
+        char[] name = new char[nameSize];
+
+        int[] vowels = new int[] { 97, 101, 105, 111, 117 };
+        int vowelCounter = 1;
+        for (int i = 0; i < name.Length; i++)
+        {
+            int charNum = UnityEngine.Random.Range(97, 123);
+
+            bool isVowel = false;
+            for (int j = 0; j < vowels.Length; j++)
+            {
+                if (charNum == vowels[j])
+                {
+                    isVowel = true;
+                    break;
+                }
+            }
+
+            if (isVowel)
+            {
+                vowelCounter = 1;
+            }
+            else if (vowelCounter == 3)
+            {
+                vowelCounter = 1;
+                charNum = vowels[UnityEngine.Random.Range(0, vowels.Length)];
+            }
+
+            vowelCounter++;
+            name[i] = (char)charNum;
+        }
+        this.name = new string(name);
+    }
+
+    public string GetName()
+    {
+        return name;
+    }
+
 
 }

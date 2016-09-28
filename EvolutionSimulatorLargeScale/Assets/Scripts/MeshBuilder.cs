@@ -10,20 +10,27 @@ public class MeshBuilder : MonoBehaviour
 
     public GameObject worldManager;
     private const string SET_TEXTURE = "SetTexture";
-    private int size_x = 100;
-    private int size_z = 100;
-    private float tileSize = 1.0f;
-    private int texWidth = 100;
-    private int texHeight = 100;
+
+    private int size_x = 150;
+    private int size_z = 150;
+    private float tileSize = 1f;
+    private int texWidth = 150;
+    private int texHeight = 150;
+
+    /*private int size_x = 150;
+    private int size_z = 150;
+    private float tileSize = 1f;
+    private int texWidth = 150;
+    private int texHeight = 150;*/
+
     Texture2D tex = null;
 
     public Texture2D worldTexture;
 
-    
-
     // Use this for initialization
     void Start()
     {
+
         BuildMesh();
         BuildTexture();
         worldManager.SendMessage(SET_TEXTURE,tex);
@@ -106,12 +113,16 @@ public class MeshBuilder : MonoBehaviour
         // Assign our mesh to our filter/renderer/collider
         MeshFilter mesh_filter = GetComponent<MeshFilter>();
         MeshRenderer mesh_renderer = GetComponent<MeshRenderer>();
-        MeshCollider mesh_collider = GetComponent<MeshCollider>();
-
+        
         mesh_filter.mesh = mesh;
-        mesh_collider.sharedMesh = mesh;
      // Debug.Log("Done Mesh!");
 
+    }
+
+
+    void Update()
+    {
+        
     }
 
 }

@@ -51,6 +51,7 @@
      <Compile Include="Assets\Scripts\Brain.cs" />
      <Compile Include="Assets\Scripts\Creature.cs" />
      <Compile Include="Assets\Scripts\MeshBuilder.cs" />
+     <Compile Include="Assets\Scripts\TileMap.cs" />
      <Compile Include="Assets\Scripts\WorldManager.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
