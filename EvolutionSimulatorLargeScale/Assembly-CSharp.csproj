@@ -50,6 +50,8 @@
      <Compile Include="Assets\Old_Prefabs-Scripts\WorldManager_Test_3.cs" />
      <Compile Include="Assets\Scripts\Brain.cs" />
      <Compile Include="Assets\Scripts\Creature.cs" />
+     <Compile Include="Assets\Scripts\GridMesh.cs" />
+     <Compile Include="Assets\Scripts\HSBColor.cs" />
      <Compile Include="Assets\Scripts\MeshBuilder.cs" />
      <Compile Include="Assets\Scripts\TileMap.cs" />
      <Compile Include="Assets\Scripts\WorldManager.cs" />

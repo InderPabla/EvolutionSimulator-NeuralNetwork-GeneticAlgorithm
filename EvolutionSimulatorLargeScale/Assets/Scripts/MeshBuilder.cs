@@ -14,8 +14,8 @@ public class MeshBuilder : MonoBehaviour
     private int size_x = 150;
     private int size_z = 150;
     private float tileSize = 1f;
-    private int texWidth = 150;
-    private int texHeight = 150;
+    private int texWidth = 151;
+    private int texHeight = 151;
 
     /*private int size_x = 150;
     private int size_z = 150;
@@ -45,6 +45,7 @@ public class MeshBuilder : MonoBehaviour
             {
                 Color worldColor = worldTexture.GetPixel(x,y);
                 tex.SetPixel(x, y, worldColor);
+                //tex.SetPixel(x, y, new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
             }
         }
 
@@ -62,7 +63,7 @@ public class MeshBuilder : MonoBehaviour
         int numTiles = size_x * size_z;
         int numTris = numTiles * 2;
 
-        int vsize_x = size_x + 1;
+        int vsize_x = size_x +1;
         int vsize_z = size_z + 1;
         int numVerts = vsize_x * vsize_z;
 
@@ -115,8 +116,7 @@ public class MeshBuilder : MonoBehaviour
         MeshRenderer mesh_renderer = GetComponent<MeshRenderer>();
         
         mesh_filter.mesh = mesh;
-     // Debug.Log("Done Mesh!");
-
+        // Debug.Log("Done Mesh!");
     }
 
 

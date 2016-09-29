@@ -5,16 +5,16 @@ public class WorldManager : MonoBehaviour {
 
     public GameObject creaturePrefab;
 
-    private Texture2D tex = null;
+    //private Texture2D tex = null;
     private bool textureLoaded = false;
   
 
-    private int creatureCount = 100;
+    private int creatureCount =1000;
     private GameObject[] gameArray ;
     private Brain[] brainArray;
 
     private const string ACTION_ACTIVATE = "Activate";
-    private const string ACTION_SET_TEXTURE = "SetTexture";
+    private const string ACTION_SET_MAP = "SetMap";
 
     //Frame rate variables
     private int m_frameCounter = 0;
@@ -26,7 +26,8 @@ public class WorldManager : MonoBehaviour {
     private float sizeY = 150;
 
 
-    private bool mouseDown = false;
+    private bool leftMouseDown = false;
+    private bool rightMouseDown = false;
     private Vector3 initialMouseLocation;
     private Vector3 initialCamera;
 
@@ -38,30 +39,29 @@ public class WorldManager : MonoBehaviour {
 
     void Update()
     {
-       CalculateFPS();
+       
        Debug.Log(m_lastFramerate);
-
+       CalculateFPS();
 
         CameraMovement();
-        tex.Apply();
+        map.Apply();
     }
-
 
     void CameraMovement()
     {
         Vector3 mouseCoords = Input.mousePosition;
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(1))
         {
-            mouseDown = true;
+            rightMouseDown = true;
             initialMouseLocation = Input.mousePosition;
             initialCamera = Camera.main.transform.position;
         }
-        else if (Input.GetMouseButtonUp(0))
+        else if (Input.GetMouseButtonUp(1))
         {
-            mouseDown = false;
+            rightMouseDown = false;
         }
 
-        if (mouseDown == true)
+        if (rightMouseDown == true)
         {
             float ratio = (23f/Camera.main.orthographicSize )*25f;
             mouseCoords = (initialMouseLocation- mouseCoords)/ ratio;
@@ -81,6 +81,30 @@ public class WorldManager : MonoBehaviour {
         {
             Camera.main.orthographicSize += 1f;
         }
+
+
+        Vector3 mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        
+        if (Input.GetMouseButtonDown(0))
+        {
+            leftMouseDown = true;
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            leftMouseDown = false;
+        }
+
+        if (leftMouseDown == true)
+        {
+            if (mouse.x < 150f && mouse.x > 0 && mouse.y < 150f && mouse.y > 0)
+            {
+                int x = (int)mouse.x;
+                int y = (int)mouse.y;
+                //tex.SetPixel(x, y, Color.red);
+                //tex.Apply();
+            }
+        }
+
     }
 
     void FixedUpdate ()
@@ -116,8 +140,7 @@ public class WorldManager : MonoBehaviour {
 
     void SetTexture(Texture2D tex)
     {
-        this.tex = tex;
-        map = new TileMap(this.tex.GetPixels(0,0,150,150),150,150);
+        map = new TileMap(tex, 150,150);
 
 
         gameArray = new GameObject[creatureCount];
@@ -128,7 +151,7 @@ public class WorldManager : MonoBehaviour {
             gameArray[i] = Instantiate(creaturePrefab, position, creaturePrefab.transform.rotation) as GameObject;
             brainArray[i] = new Brain(new int[] { 12, 12, 12, 12 });
             gameArray[i].SendMessage(ACTION_ACTIVATE, brainArray[i]);
-            gameArray[i].SendMessage(ACTION_SET_TEXTURE, this.tex);
+            gameArray[i].SendMessage(ACTION_SET_MAP, this.map);
         }
 
         textureLoaded = true;

@@ -5,11 +5,15 @@ using System;
 //Fast neural network based on matrix operations 
 public class Brain {
 
+    private const float BIAS = 0.25f;
+
+    private int[] layers;
     private float[][] neurons;
     private float[][][] weights;
-    private int[] layers;
-    private float bias = 0.25f;
+    
     private string name;
+    private float energy = 100f;
+    private float size = 0.5f;
 
     public Brain(int[] lay)
     {
@@ -43,7 +47,6 @@ public class Brain {
     {
         //Weights Initilization
         List<float[][]> weightsList = new List<float[][]>();
-
 
         for (int i = 1; i < neurons.Length; i++) 
         {
@@ -87,7 +90,7 @@ public class Brain {
         {
             for (int j = 0; j < neurons[i].Length; j++) //nerons
             {
-                float value = bias;
+                float value = BIAS;
 
                 for (int k = 0; k < neurons[i-1].Length; k++) 
                 {
@@ -99,22 +102,28 @@ public class Brain {
             weightLayerIndex++;
         }
 
-        for (int i = neurons.Length - 1; i < neurons.Length; i++)
-        {
-            for (int j = 0; j < neurons[i].Length; j++)
-            {
-                //Debug.Log(neurons[i][j]);
-            }
-        }
-
         return neurons[layers.Length - 1]; //return output field
     }
 
-    private float tanh(float value) {
+    //hyperbolic tangent activation
+    private float tanh(float value)
+    {
         return (float)Math.Tanh(value);
-        //return value;
     }
 
+    //re return last float array in neurons matrix
+    public float[] GetOutput()
+    {
+        return neurons[layers.Length - 1]; //return output field
+    }
+
+    //return creature size
+    public float GetSize()
+    {
+        return size;
+    }
+
+    //random name generation, with atlest 1 vowel per 3 letters 
     public void GenerateRandomName()
     {
         int nameSize = UnityEngine.Random.Range(3, 11);
@@ -152,10 +161,30 @@ public class Brain {
         this.name = new string(name);
     }
 
+    public void Eat(float energy)
+    {
+        this.energy += energy;
+        //this.energy -= 5f;
+    }
+
     public string GetName()
     {
         return name;
     }
 
+    public float GetEnergy()
+    {
+        return energy;
+    }
+
+    public void NaturalEnergyLoss()
+    {
+        //energy -= 1f;
+    }
+
+    public void Move(float speed)
+    {
+        //energy -= Mathf.Abs(speed);
+    }
 
 }

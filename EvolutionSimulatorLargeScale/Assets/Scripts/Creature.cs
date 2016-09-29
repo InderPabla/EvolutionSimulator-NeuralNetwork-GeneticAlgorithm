@@ -12,70 +12,96 @@ public class Creature : MonoBehaviour
     private Rigidbody2D rBody;
     private Material mat;
     private Color color;
-    private Texture2D tex;
+    private TileMap map;
 
-    
     void Start()
     {
         rBody = GetComponent<Rigidbody2D>();
         mat = GetComponent<Renderer>().material;
-        Invoke("Fire",1f);
+        Invoke("Fire", 1f);
     }
 
     void Activate(Brain brain)
     {
         this.brain = brain;
-        text.text = brain.GetName();
+        text.text = brain.GetName(); 
     }
 
-    void SetTexture(Texture2D tex)
+    void SetMap(TileMap map)
     {
-        this.tex = tex;
+        this.map = map;
     }
 
     void LateUpdate()
     {
         FixTextPosition();
+
+        CheckForDeath();
+
     }
 
-    private Color GetTileColor(Vector2 pos)
+    public void FixedUpdate()
     {
-        if (pos.x > 150f || pos.x < 0 || pos.y > 150f || pos.x < 0)
-        {
-            return Color.black;
-        }
-        else
-        {
-            return tex.GetPixel((int)pos.x, (int)pos.y);
-        }
+
+
+        
+
 
     }
+    
 
     public void Fire()
     {
         Color floorBodyColor, floorLeftColor, floorRightColor;
 
-        floorBodyColor = GetTileColor(transform.position);
-        floorLeftColor = GetTileColor(left.position);
-        floorRightColor = GetTileColor(right.position);
+        floorBodyColor = map.GetColor((int)transform.position.x, (int)transform.position.y);
+        floorLeftColor = map.GetColor((int)left.position.x, (int)left.position.y);
+        floorRightColor = map.GetColor((int)right.position.x, (int)right.position.y);
+
+        Collider2D leftCol = Physics2D.OverlapPoint(left.position);
+        Collider2D rightCol = Physics2D.OverlapPoint(left.position);
+
+        if (leftCol != null)
+        {
+            floorLeftColor = leftCol.GetComponent<Renderer>().material.color;
+        }
+
+        if (rightCol != null)
+        {
+            floorRightColor = rightCol.GetComponent<Renderer>().material.color;
+        }
+
+        float[] previousOutput = brain.GetOutput();
 
         float[] input = new float[] {floorBodyColor.r,floorBodyColor.g,floorBodyColor.b,
                                      floorLeftColor.r,floorLeftColor.g,floorLeftColor.b,
                                      floorRightColor.r,floorRightColor.g,floorRightColor.b,
-                                      3.43f,-0.34f,-0.894f};
+                                      brain.GetSize(),previousOutput[5],previousOutput[6]};
         float[] output = brain.feedforward(input);
 
-        rBody.velocity = rBody.transform.up * output[3] * 10f;
-        rBody.angularVelocity = output[4] * 100f;
+        rBody.velocity = rBody.transform.up * output[0] * 10f;
+        rBody.angularVelocity = output[1] * 100f;
 
-        float r = output[0] < 0 ? 1f + output[0] : output[0];
-        float g = output[1] < 0 ? 1f + output[1] : output[1];
-        float b = output[2] < 0 ? 1f + output[2] : output[2];
-        mat.color = new Color(r,g,b);
 
-        floorBodyColor.g += 0.01f;
-        tex.SetPixel((int)transform.position.x, (int)transform.position.y,floorBodyColor);
-        
+
+        output = brain.GetOutput();
+
+        float r = output[2] < 0 ? 1f + output[2] : output[2];
+        float g = output[3] < 0 ? 1f + output[3] : output[3];
+        float b = output[4] < 0 ? 1f + output[4] : output[4];
+        mat.color = new Color(r, g, b);
+
+        if (output[7] > 0)
+        {
+            Vector3 pos = transform.position;
+            float energy = map.Eat((int)transform.position.x, (int)transform.position.y);
+            brain.Eat(energy);
+        }
+
+        brain.Move(output[0]);
+
+        brain.NaturalEnergyLoss();
+
         Invoke("Fire", 0.1f);
     }
 
@@ -86,6 +112,15 @@ public class Creature : MonoBehaviour
         text.transform.position = pos;
 
         text.transform.eulerAngles = Vector3.zero;
+    }
+
+    void CheckForDeath()
+    {
+
+        if (brain.GetEnergy() < 0)
+        {
+            Destroy(gameObject);
+        }
     }
 
 
