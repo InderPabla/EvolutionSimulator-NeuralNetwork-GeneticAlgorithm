@@ -17,12 +17,6 @@ public class MeshBuilder : MonoBehaviour
     private int texWidth = 151;
     private int texHeight = 151;
 
-    /*private int size_x = 150;
-    private int size_z = 150;
-    private float tileSize = 1f;
-    private int texWidth = 150;
-    private int texHeight = 150;*/
-
     Texture2D tex = null;
 
     public Texture2D worldTexture;
@@ -45,7 +39,6 @@ public class MeshBuilder : MonoBehaviour
             {
                 Color worldColor = worldTexture.GetPixel(x,y);
                 tex.SetPixel(x, y, worldColor);
-                //tex.SetPixel(x, y, new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
             }
         }
 

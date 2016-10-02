@@ -29,7 +29,7 @@ public class GridMesh : MonoBehaviour {
 
             renLineHori[i].SetWidth(0.1f, 0.1f) ;
 
-            renLineHori[i].material = new Material(Shader.Find("Particles/Multiply"));
+            //renLineHori[i].material = new Material(Shader.Find("Particles/Multiply"));
             renLineHori[i].SetColors(Color.black, Color.black);
 
             gameLineVert[i] = Instantiate(linePrefab) as GameObject;
@@ -42,7 +42,7 @@ public class GridMesh : MonoBehaviour {
 
             renLineVert[i].SetWidth(0.1f, 0.1f);
 
-            renLineVert[i].material = new Material(Shader.Find("Particles/Multiply"));
+            //renLineVert[i].material = new Material(Shader.Find("Particles/Multiply"));
             renLineVert[i].SetColors(Color.black, Color.black);
             
         }
@@ -52,6 +52,19 @@ public class GridMesh : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
-	}
+        for (int i = 0; i < 150; i++)
+        {
+
+            float cameraSize = Camera.main.orthographicSize;
+            float width = 0.1f;
+            if (cameraSize <23)
+            {
+                width = 0.1f-(0.05f * ((23 - cameraSize) / 23));
+            }
+
+            renLineHori[i].SetWidth(width, width);
+            renLineVert[i].SetWidth(width, width);
+
+        }
+    }
 }

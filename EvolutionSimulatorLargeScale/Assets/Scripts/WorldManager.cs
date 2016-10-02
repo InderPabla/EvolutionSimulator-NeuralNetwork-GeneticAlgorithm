@@ -1,17 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class WorldManager : MonoBehaviour {
 
     public GameObject creaturePrefab;
+    public TextMesh tileDataText;
 
     //private Texture2D tex = null;
     private bool textureLoaded = false;
-  
 
-    private int creatureCount =1000;
-    private GameObject[] gameArray ;
-    private Brain[] brainArray;
+
+    private int minCreatureCount = 75;
+    private int totalCreatures = 1;
+
+    private List<GameObject> gameArray ;
+    private List<Brain> brainArray;
 
     private const string ACTION_ACTIVATE = "Activate";
     private const string ACTION_SET_MAP = "SetMap";
@@ -31,7 +35,12 @@ public class WorldManager : MonoBehaviour {
     private Vector3 initialMouseLocation;
     private Vector3 initialCamera;
 
-    TileMap map;
+    private Collider2D captureCreatureCollider;
+    private Brain captureCreatureBrain;
+
+    private TileMap map;
+    int[] brainNetwork = new int[] { 12,15, 8 };
+
     void Start ()
     {
        
@@ -39,17 +48,30 @@ public class WorldManager : MonoBehaviour {
 
     void Update()
     {
-       
-       Debug.Log(m_lastFramerate);
-       CalculateFPS();
+        //CalculateFPS();
+        //Debug.Log(m_lastFramerate);
+        Debug.Log(brainArray.Count);
 
-        CameraMovement();
+        if (Time.timeScale <= 2f)
+        {
+            
+            CameraMovement();
+            CaptureCreatureInformation();
+        }
+
+       
+    }
+
+    public void FixedUpdate()
+    {
         map.Apply();
     }
 
     void CameraMovement()
     {
-        Vector3 mouseCoords = Input.mousePosition;
+        Vector3 mouseCoordsScreen = Input.mousePosition;
+        Vector3 mouseCoordsWorld = Camera.main.ScreenToWorldPoint(mouseCoordsScreen);
+
         if (Input.GetMouseButtonDown(1))
         {
             rightMouseDown = true;
@@ -64,8 +86,8 @@ public class WorldManager : MonoBehaviour {
         if (rightMouseDown == true)
         {
             float ratio = (23f/Camera.main.orthographicSize )*25f;
-            mouseCoords = (initialMouseLocation- mouseCoords)/ ratio;
-            Vector3 cameraPos = initialCamera + mouseCoords;
+            mouseCoordsScreen = (initialMouseLocation- mouseCoordsScreen) / ratio;
+            Vector3 cameraPos = initialCamera + mouseCoordsScreen;
             cameraPos.z = -111;
 
             Camera.main.transform.position = cameraPos;
@@ -81,61 +103,37 @@ public class WorldManager : MonoBehaviour {
         {
             Camera.main.orthographicSize += 1f;
         }
-
-
-        Vector3 mouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+   
         
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonUp(0))
         {
-            leftMouseDown = true;
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            leftMouseDown = false;
-        }
-
-        if (leftMouseDown == true)
-        {
-            if (mouse.x < 150f && mouse.x > 0 && mouse.y < 150f && mouse.y > 0)
+            captureCreatureCollider = Physics2D.OverlapCircle(mouseCoordsWorld,2f);
+            if (captureCreatureCollider != null)
             {
-                int x = (int)mouse.x;
-                int y = (int)mouse.y;
-                //tex.SetPixel(x, y, Color.red);
-                //tex.Apply();
+                captureCreatureBrain = captureCreatureCollider.GetComponent<Creature>().GetBrain();
             }
         }
+
+        TileDataTextPlacement(mouseCoordsWorld);
 
     }
 
-    void FixedUpdate ()
+    private void TileDataTextPlacement(Vector2 mouse)
     {
-        /*if (textureLoaded == true)
+        if (map.IsValidLocation((int)mouse.x, (int)mouse.y))
         {
-            
-            Vector3 mouseCoords = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            tileDataText.text = map.TileToString((int)mouse.x, (int)mouse.y);
+            tileDataText.transform.position = new Vector3((int)mouse.x+0.5f, (int)mouse.y + 0.5f, tileDataText.transform.position.z);
+        }
+    }
 
-            if (Input.GetMouseButtonDown(0))
-            {
-                mouseDown = true;
-            }
-            else if (Input.GetMouseButtonUp(0))
-            {
-                mouseDown = false;
-            }
-
-            if (mouseDown == true)
-            {
-                if (mouseCoords.x < 100f && mouseCoords.x > 0 && mouseCoords.y < 100f && mouseCoords.y > 0)
-                {
-                    int x = (int)mouseCoords.x;
-                    int y = (int)mouseCoords.y;
-                    tex.SetPixel(x, y, Color.red);
-                    tex.Apply();
-                }
-            }
-        }*/
-        
-
+    private void CaptureCreatureInformation()
+    {
+        if (captureCreatureCollider != null)
+        {
+            //Debug.Log(captureCreatureBrain.GetOutput()[7]);
+            Debug.Log(captureCreatureBrain.GetEnergy());
+        }
     }
 
     void SetTexture(Texture2D tex)
@@ -143,20 +141,73 @@ public class WorldManager : MonoBehaviour {
         map = new TileMap(tex, 150,150);
 
 
-        gameArray = new GameObject[creatureCount];
-        brainArray = new Brain[creatureCount];
-        for (int i = 0; i < creatureCount; i++)
+        gameArray = new List<GameObject>();
+        brainArray = new List<Brain>();
+        for (int i = 0; i < minCreatureCount; i++)
         {
-            Vector3 position = new Vector3(Random.Range(0f, sizeX), Random.Range(0f, sizeY), creaturePrefab.transform.position.z);
-            gameArray[i] = Instantiate(creaturePrefab, position, creaturePrefab.transform.rotation) as GameObject;
-            brainArray[i] = new Brain(new int[] { 12, 12, 12, 12 });
+            
+            CreateCreature();
+
+            /*gameArray.Add(Instantiate(creaturePrefab, position, creaturePrefab.transform.rotation) as GameObject);
+            brainArray.Add(new Brain(brainNetwork, map.GetWorldDeltaTime(), totalCreatures));
+
+            
             gameArray[i].SendMessage(ACTION_ACTIVATE, brainArray[i]);
             gameArray[i].SendMessage(ACTION_SET_MAP, this.map);
+            gameArray[i].transform.parent = transform;
+
+            totalCreatures++;*/
+
         }
 
         textureLoaded = true;
     }
 
+
+    public void KillCreature(Brain brain)
+    {
+        int index = brainArray.IndexOf(brain);
+        brainArray.RemoveAt(index);
+        gameArray.RemoveAt(index);
+
+        if(brainArray.Count < minCreatureCount)
+        {
+            CreateCreature();
+        }
+    }
+
+
+    public void CreateCreature()
+    {
+        int[] randomTile = map.RandomFloorTile();
+        Vector3 position = new Vector3(randomTile[0] + 0.5f, randomTile[1] + 0.5f, creaturePrefab.transform.position.z);
+
+        gameArray.Add(Instantiate(creaturePrefab, position, creaturePrefab.transform.rotation) as GameObject);
+        brainArray.Add(new Brain(brainNetwork, map.GetWorldDeltaTime(), totalCreatures));
+
+        gameArray[gameArray.Count - 1].SendMessage(ACTION_ACTIVATE, brainArray[brainArray.Count - 1]);
+        gameArray[gameArray.Count - 1].SendMessage(ACTION_SET_MAP, this.map);
+        gameArray[gameArray.Count - 1].transform.parent = transform;
+
+        totalCreatures++;
+    }
+
+    public void BirthCreature(Brain parentBrain)
+    {
+        Vector3 position = gameArray[brainArray.IndexOf(parentBrain)].transform.position; //get position of the parent brain in the world
+
+        Brain childBrain = new Brain(parentBrain, totalCreatures);
+        childBrain.Mutate();
+
+        gameArray.Add(Instantiate(creaturePrefab, position, creaturePrefab.transform.rotation) as GameObject);
+        brainArray.Add(childBrain);
+
+        gameArray[gameArray.Count - 1].SendMessage(ACTION_ACTIVATE, brainArray[brainArray.Count - 1]);
+        gameArray[gameArray.Count - 1].SendMessage(ACTION_SET_MAP, this.map);
+        gameArray[gameArray.Count - 1].transform.parent = transform;
+
+        totalCreatures++;
+    }
 
     private void CalculateFPS()
     {

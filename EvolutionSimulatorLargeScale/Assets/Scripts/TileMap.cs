@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
+using System.Collections.Generic;
 
 struct Tile
 {
@@ -24,6 +26,10 @@ public class TileMap
     Texture2D texture;
     int sizeX;
     int sizeY;
+    float worldDeltaTime = 0.033333333f; //each year last
+    float climate = 0.1f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
+    
+    List<int[]> floorTiles = new List<int[]>();
 
     public TileMap(Texture2D tex, int sizeX, int sizeY)
     {
@@ -48,48 +54,53 @@ public class TileMap
                 {
                     tiles[y, x].type = Tile.TILE_WATER;
                     tiles[y, x].maxEnergy = 0f;
+                    tiles[y, x].detail.b = 1f;
                 }
                 else if (r == 1 && g == 1 && b == 1)
                 {
                     tiles[y, x].type = Tile.TILE_INFERTIAL;
                     tiles[y, x].maxEnergy = 0f;
-                }
-                else if (r == 1 && g == 0 && b == 0)
-                {
-                    tiles[y, x].type = Tile.TILE_RED;
                     tiles[y, x].detail.b = 1f;
-                    tiles[y, x].maxEnergy = 100f;
-                }
-                else if (r == 0 && g == 1 && b == 0)
-                {
-                    tiles[y, x].type = Tile.TILE_GREEN;
-                    tiles[y, x].detail.b = 1f;
-                    tiles[y, x].maxEnergy = 100f;
-                }
-                else if (r == 0 && g == 0 && b == 1)
-                {
-                    tiles[y, x].type = Tile.TILE_BLUE;
-                    tiles[y, x].detail.b = 1f;
-                    tiles[y, x].maxEnergy = 100f;
-                }
-                else if (r == b)
-                {
-                    tiles[y, x].type = Tile.TILE_PURPLE;
-                    tiles[y, x].detail.b = 1f;
-                    tiles[y, x].maxEnergy = 100f;
+
                 }
                 else
-                {
-                    tiles[y, x].type = Tile.TILE_ORANGE;
-                    tiles[y, x].detail.b = 1f;
-                    tiles[y, x].maxEnergy = 100f;
+                { 
+                    if (r == 1 && g == 0 && b == 0)
+                    {
+                        tiles[y, x].type = Tile.TILE_RED;
+                        tiles[y, x].detail.b = 1f;
+                        tiles[y, x].maxEnergy = 100f;
+                    }
+                    else if (r == 0 && g == 1 && b == 0)
+                    {
+                        tiles[y, x].type = Tile.TILE_GREEN;
+                        tiles[y, x].detail.b = 1f;
+                        tiles[y, x].maxEnergy = 100f;
+                    }
+                    else if (r == 0 && g == 0 && b == 1)
+                    {
+                        tiles[y, x].type = Tile.TILE_BLUE;
+                        tiles[y, x].detail.b = 1f;
+                        tiles[y, x].maxEnergy = 100f;
+                    }
+                    else if (r == b)
+                    {
+                        tiles[y, x].type = Tile.TILE_PURPLE;
+                        tiles[y, x].detail.b = 1f;
+                        tiles[y, x].maxEnergy = 100f;
+                        tiles[y, x].detail = new HSBColor(0.7777778f, 1f, 1f);
+                    }
+                    else
+                    {
+                        tiles[y, x].type = Tile.TILE_ORANGE;
+                        tiles[y, x].detail.b = 1f;
+                        tiles[y, x].maxEnergy = 100f;
+                    }
+                    floorTiles.Add(new int[] {x,y});
                 }
 
                 
                 tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
-                //Color c = tiles[y, x].detail.ToColor();
-                //if (i == 0)
-                //Debug.Log(j+" "+tiles[i, j].detail.h+" "+ tiles[i, j].detail.s+" "+ tiles[i, j].detail.b+" -------- "+c.r+" "+ c.g +" "+ c.b+" ------ "+r+" "+g+" "+b);
 
                 colorIndex++;
             }
@@ -105,23 +116,13 @@ public class TileMap
         {
             for (int x = 0; x < sizeX; x++)
             {
-                /*if (tiles[y, x].type != Tile.TILE_INFERTIAL && tiles[y, x].type != Tile.TILE_WATER)
-                {
-                    tiles[y, x].detail.s -= 0.005f;
-                    tiles[y, x].detail.b -= 0.001f;
 
-                    if (tiles[y, x].detail.s < 0)
-                    {
-                        tiles[y, x].detail.s = 0;
-                    }
-                    if (tiles[y, x].detail.b < 0.75f)
-                    {
-                        tiles[y, x].detail.b = 0.75f;
-                    }
-                }
-               
-               
-                texture.SetPixel(x, y, tiles[y, x].detail.ToColor());*/
+                tiles[y, x].currentEnergy += climate*Time.deltaTime*10f;
+
+                if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
+                    tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
+                else if(tiles[y, x].currentEnergy < 0f)
+                    tiles[y, x].currentEnergy = 0f;
 
                 if (tiles[y, x].type != Tile.TILE_INFERTIAL && tiles[y, x].type != Tile.TILE_WATER)
                 {
@@ -137,63 +138,72 @@ public class TileMap
         texture.Apply();
     }
 
-    public Color GetColor(int x, int y)
+    public float GetWorldDeltaTime()
     {
-        if (x < 0 || x > sizeX || y < 0 || y > sizeY)
-            return Color.black;
-        else 
-            return texture.GetPixel(x,y);
+        return worldDeltaTime;
+    }
+
+    public HSBColor GetColor(int x, int y)
+    {
+        if (IsValidLocation(x, y) == true)
+            //return texture.GetPixel(x, y);
+            return tiles[y, x].detail;
+
+        return HSBColor.FromColor(Color.black);
+            
     }
 
     public float Eat(int x,int y)
     {
         float energy = 0;
 
-        if (tiles[y, x].currentEnergy > 0)
+        if (IsValidLocation(x, y) == true)
         {
-            tiles[y, x].currentEnergy -= 10f;
+            if (tiles[y, x].currentEnergy > 0)
+            {
+                energy = Time.deltaTime * 100f;
 
-            if (tiles[y, x].currentEnergy < 0)
-                tiles[y, x].currentEnergy = 0;
+                tiles[y, x].currentEnergy -= energy;
 
-            energy = 10f;
+                if (tiles[y, x].currentEnergy < 0)
+                {
+                    energy += tiles[y, x].currentEnergy;
+                    tiles[y, x].currentEnergy = 0;
+                }
+                
+                        
+            }
         }
 
         return energy;
-
-
-        /*tiles[y, x].detail.s -= 0.1f;
-       if (tiles[y, x].detail.s < 0)
-           tiles[y, x].detail.s = 0;
-       texture.SetPixel(x,y, tiles[y, x].detail.ToColor());*/
-
-
-        /*if (tiles[y, x].type != Tile.TILE_INFERTIAL && tiles[y, x].type != Tile.TILE_WATER)
-        {
-
-
-            if (tiles[y, x].detail.s > 0)
-            {
-                tiles[y, x].detail.s -= 0.1f;
-                tiles[y, x].detail.b -= 0.02f;
-                energy = 10f;
-            }
-
-
-            if (tiles[y, x].detail.s < 0)
-            {
-                tiles[y, x].detail.s = 0;
-            }
-
-            if (tiles[y, x].detail.b < 0.75f)
-            {
-                tiles[y, x].detail.b = 0.75f;
-            }
-
-        }*/
-
+        
 
     }
 
-   
+    public bool IsValidLocation(int x, int y)
+    {
+        if (x < 0 || x > sizeX - 1 || y < 0 || y > sizeY - 1)
+            return false;
+
+        return true;
+    }
+
+    public string TileToString(int x, int y)
+    {
+        return "X: " + x + "\nY: " + y + "\nE: " + String.Format("{0:###.00}", tiles[y, x].currentEnergy) + "\nC: " + String.Format("{0:###.00}", climate);
+    }
+
+    public int[] RandomFloorTile()
+    {
+        return floorTiles[UnityEngine.Random.Range(0,floorTiles.Count)];
+    }
+
+    public int GetTileType(int x, int y)
+    {
+        if (IsValidLocation(x, y) == true)
+        {
+            return tiles[y,x].type;
+        }
+        return Tile.TILE_WATER;
+    }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System;
 
 //Fast neural network based on matrix operations 
-public class Brain {
+public class Brain : IEquatable<Brain>{
 
     private const float BIAS = 0.25f;
 
@@ -12,11 +12,22 @@ public class Brain {
     private float[][][] weights;
     
     private string name;
-    private float energy = 100f;
-    private float size = 0.5f;
 
-    public Brain(int[] lay)
+    private float currentEnergy = 100f;
+    private float initialEnergy = 100f;
+    private float deltaEnergy = 0f;
+
+    private float size = 0.5f;
+    private float initialSize = 0.5f;
+
+    private float worldDeltaTime = 1f;
+    private int ID;
+
+    public Brain(int[] lay, float delta, int ID)
     {
+        this.worldDeltaTime = delta;
+        this.ID = ID;
+
         //deep copy layers array
         this.layers = new int[lay.Length];
         for (int i = 0; i < layers.Length; i++) {
@@ -27,6 +38,44 @@ public class Brain {
         InitilizeNeurons(); 
         InitilizeWeights();
         GenerateRandomName();
+    }
+
+    // Deep copy constructor of a given Brain
+    public Brain(Brain parentBrain, int ID)
+    {
+        this.worldDeltaTime = parentBrain.worldDeltaTime;
+        this.ID = ID;
+
+        //deep copy layers array
+        this.layers = new int[parentBrain.layers.Length];
+        for (int i = 0; i < layers.Length; i++)
+        {
+            this.layers[i] = parentBrain.layers[i];
+        }
+
+        //deep copy neurons
+        this.neurons = new float[parentBrain.neurons.Length][];
+        for (int i = 0; i < this.neurons.Length; i++)
+        {
+            this.neurons[i] = (float[])parentBrain.neurons[i].Clone();
+        }
+
+        //deep copy weights
+        this.weights = new float[parentBrain.weights.Length][][];
+        for (int i = 0; i < this.weights.Length; i++)
+        {
+            float[][] parentNeuronWeightsOfLayer = parentBrain.weights[i];
+            float[][] weightsOfLayer = new float[parentNeuronWeightsOfLayer.Length][];
+
+            for (int j = 0; j < weightsOfLayer.Length; j++)
+            {
+                weightsOfLayer[j] = (float[])parentNeuronWeightsOfLayer[j].Clone();
+            }
+
+            this.weights[i] = weightsOfLayer;
+        }
+
+        this.name = parentBrain.name;
     }
 
     //create a static neuron matrix
@@ -51,7 +100,6 @@ public class Brain {
         for (int i = 1; i < neurons.Length; i++) 
         {
             List<float[]> layerWeightsList = new List<float[]>(); //layer weights list
-            float[][] layerWeights; //layer weights array
 
             int neuronsInPreviousLayer = layers[i-1];
             
@@ -161,10 +209,9 @@ public class Brain {
         this.name = new string(name);
     }
 
-    public void Eat(float energy)
+    public void SetWorldDeltaTime(float delta)
     {
-        this.energy += energy;
-        //this.energy -= 5f;
+        worldDeltaTime = delta;
     }
 
     public string GetName()
@@ -174,17 +221,107 @@ public class Brain {
 
     public float GetEnergy()
     {
-        return energy;
+        return currentEnergy;
     }
 
-    public void NaturalEnergyLoss()
+    public void NaturalEnergyLoss(float factor)
     {
-        //energy -= 1f;
+        deltaEnergy -= (((Time.deltaTime * worldDeltaTime * 100f) *(size/initialSize))* factor); 
     }
 
-    public void Move(float speed)
+    public void ResetDeltaEnergy()
     {
-        //energy -= Mathf.Abs(speed);
+        deltaEnergy = 0f;
     }
 
+
+    public void Eat(float energy)
+    {
+        //this.deltaEnergy += (energy - ((Time.deltaTime * 100f)/2f));
+        this.deltaEnergy += (energy/2f);
+    }
+
+    public void Move(float accel)
+    {
+        this.deltaEnergy -= (Mathf.Abs(accel));
+        
+    }
+
+    public float CalculateSize() {
+        if (currentEnergy < initialEnergy)
+        {
+            size = initialSize;
+        }
+        else
+        {
+            size = initialSize + (currentEnergy / initialEnergy)*0.014f;
+        }
+       
+        return size;
+    }
+
+    
+    public void ApplyDeltaEnergy() {
+        currentEnergy += deltaEnergy;
+    }
+
+    public bool Equals(Brain other)
+    {
+        if (other == null)
+            return false;
+
+        return (other.ID == this.ID);
+    }
+
+    public void BirthEnergyLoss()
+    {
+        deltaEnergy -= 150f;
+    }
+
+    public void SetID(int ID)
+    {
+        this.ID = ID;
+    }
+
+    public void Mutate()
+    {
+        //Mutate weight, each weight has a 4%
+        for (int i = 0; i < weights.Length; i++)
+        {
+            for (int j = 0; j < weights[i].Length; j++)
+            {
+                for (int k = 0; k < weights[i][j].Length; k++)
+                {
+                    float weight = weights[i][j][k];
+
+                    int randomNumber = UnityEngine.Random.Range(1, 101); //random number between 1 and 100
+                    if (randomNumber <= 1)
+                    { //if 1
+                      //flip sign of weight
+                        weight *= -1f;
+                    }
+                    else if (randomNumber <= 2)
+                    { //if 2
+                      //pick random weight between -1 and 1
+                        weight = UnityEngine.Random.Range(-1f, 1f);
+                    }
+                    else if (randomNumber <= 3)
+                    { //if 3
+                      //randomly increase by 0% to 100%
+                        float factor = UnityEngine.Random.Range(0f, 1f) + 1f;
+                        weight *= factor;
+                    }
+                    else if (randomNumber <= 4)
+                    { //if 4
+                      //randomly decrease by 0% to 100%
+                        float factor = UnityEngine.Random.Range(0f, 1f);
+                        weight *= factor;
+                    }
+
+                    weights[i][j][k] = weight;
+                }
+            }
+        } 
+
+    }
 }
