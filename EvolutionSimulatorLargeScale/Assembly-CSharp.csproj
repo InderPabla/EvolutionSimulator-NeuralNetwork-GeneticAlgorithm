@@ -45,16 +45,19 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Old_Prefabs-Scripts\WorldManager_Test_1.cs" />
-     <Compile Include="Assets\Old_Prefabs-Scripts\WorldManager_Test_2.cs" />
-     <Compile Include="Assets\Old_Prefabs-Scripts\WorldManager_Test_3.cs" />
-     <Compile Include="Assets\Scripts\Brain.cs" />
-     <Compile Include="Assets\Scripts\Creature.cs" />
-     <Compile Include="Assets\Scripts\GridMesh.cs" />
-     <Compile Include="Assets\Scripts\HSBColor.cs" />
-     <Compile Include="Assets\Scripts\MeshBuilder.cs" />
-     <Compile Include="Assets\Scripts\TileMap.cs" />
-     <Compile Include="Assets\Scripts\WorldManager.cs" />
+     <Compile Include="Assets\Global Scripts\GridMesh.cs" />
+     <Compile Include="Assets\Global Scripts\HSBColor.cs" />
+     <Compile Include="Assets\Old_Not_Used\Old_Prefabs-Scripts\WorldManager_Test_1.cs" />
+     <Compile Include="Assets\Old_Not_Used\Old_Prefabs-Scripts\WorldManager_Test_2.cs" />
+     <Compile Include="Assets\Old_Not_Used\Old_Prefabs-Scripts\WorldManager_Test_3.cs" />
+     <Compile Include="Assets\V1\Scripts\Brain.cs" />
+     <Compile Include="Assets\V1\Scripts\Creature.cs" />
+     <Compile Include="Assets\V1\Scripts\MeshBuilder.cs" />
+     <Compile Include="Assets\V1\Scripts\TileMap.cs" />
+     <Compile Include="Assets\V1\Scripts\WorldManager.cs" />
+     <Compile Include="Assets\V2\Scripts\Brain_V2.cs" />
+     <Compile Include="Assets\V2\Scripts\TileMap_V2.cs" />
+     <Compile Include="Assets\V2\Scripts\WolrdManager_V2.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
