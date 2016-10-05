@@ -27,7 +27,7 @@ public class GridMesh : MonoBehaviour {
             renLineHori[i].SetPosition(0, new Vector3(0, i, -1));
             renLineHori[i].SetPosition(1, new Vector3(150, i, -1));
 
-            renLineHori[i].SetWidth(0.1f, 0.1f) ;
+            renLineHori[i].SetWidth(0.05f, 0.05f) ;
 
             //renLineHori[i].material = new Material(Shader.Find("Particles/Multiply"));
             renLineHori[i].SetColors(Color.black, Color.black);

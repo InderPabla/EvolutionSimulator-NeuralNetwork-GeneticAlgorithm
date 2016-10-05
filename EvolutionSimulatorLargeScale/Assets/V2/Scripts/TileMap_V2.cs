@@ -3,20 +3,22 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 
-struct Tile_V2
+public class Tile_V2
 {
     public const int TILE_RED = 0;
     public const int TILE_GREEN = 1;
     public const int TILE_BLUE = 2;
     public const int TILE_ORANGE = 3;
     public const int TILE_PURPLE = 4;
-    public const int TILE_INFERTIAL = 5;
-    public const int TILE_WATER = 6;
+    public const int TILE_INFERTIAL = 0;
+    public const int TILE_WATER = -1;
 
     public int type;
     public HSBColor detail;
     public float maxEnergy;
     public float currentEnergy;
+
+    public List<int> creatureListOnTile = new List<int>();
 
 }
 public class TileMap_V2
@@ -43,56 +45,50 @@ public class TileMap_V2
         {
             for (int x = 0; x < sizeX; x++)
             {
+                tiles[y, x] = new Tile_V2();
                 float r = texColor[colorIndex].r;
                 float g = texColor[colorIndex].g;
                 float b = texColor[colorIndex].b;
 
                 tiles[y, x].detail = new HSBColor(texColor[colorIndex]);
-
+                tiles[y, x].detail.b = 1f;
                 if (r == 0 && g == 0 && b == 0)
                 {
                     tiles[y, x].type = Tile_V2.TILE_WATER;
                     tiles[y, x].maxEnergy = 0f;
-                    tiles[y, x].detail.b = 1f;
+                   
                 }
                 else if (r == 1 && g == 1 && b == 1)
                 {
                     tiles[y, x].type = Tile_V2.TILE_INFERTIAL;
                     tiles[y, x].maxEnergy = 0f;
-                    tiles[y, x].detail.b = 1f;
-
                 }
                 else
                 {
                     if (r == 1 && g == 0 && b == 0)
                     {
                         tiles[y, x].type = Tile_V2.TILE_RED;
-                        tiles[y, x].detail.b = 1f;
                         tiles[y, x].maxEnergy = 100f;
                     }
                     else if (r == 0 && g == 1 && b == 0)
                     {
                         tiles[y, x].type = Tile_V2.TILE_GREEN;
-                        tiles[y, x].detail.b = 1f;
                         tiles[y, x].maxEnergy = 100f;
                     }
                     else if (r == 0 && g == 0 && b == 1)
                     {
                         tiles[y, x].type = Tile_V2.TILE_BLUE;
-                        tiles[y, x].detail.b = 1f;
                         tiles[y, x].maxEnergy = 100f;
                     }
                     else if (r == b)
                     {
                         tiles[y, x].type = Tile_V2.TILE_PURPLE;
-                        tiles[y, x].detail.b = 1f;
                         tiles[y, x].maxEnergy = 100f;
                         tiles[y, x].detail = new HSBColor(0.7777778f, 1f, 1f);
                     }
                     else
                     {
                         tiles[y, x].type = Tile_V2.TILE_ORANGE;
-                        tiles[y, x].detail.b = 1f;
                         tiles[y, x].maxEnergy = 100f;
                     }
                     floorTiles.Add(new int[] { x, y });
@@ -116,22 +112,6 @@ public class TileMap_V2
             for (int x = 0; x < sizeX; x++)
             {
 
-                /*tiles[y, x].currentEnergy += climate * Time.deltaTime * 10f;
-
-                if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
-                    tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
-                else if (tiles[y, x].currentEnergy < 0f)
-                    tiles[y, x].currentEnergy = 0f;
-
-                if (tiles[y, x].type != Tile.TILE_INFERTIAL && tiles[y, x].type != Tile.TILE_WATER)
-                {
-                    float saturationToEnergyRatio = tiles[y, x].currentEnergy / tiles[y, x].maxEnergy;
-                    tiles[y, x].detail.s = saturationToEnergyRatio;
-                    tiles[y, x].detail.b = 1f - (0.25f - (saturationToEnergyRatio * 0.25f));
-
-                    texture.SetPixel(x, y, tiles[y, x].detail.ToColor());
-                }*/
-
 
                 tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed * 10f;
 
@@ -140,7 +120,7 @@ public class TileMap_V2
                 else if (tiles[y, x].currentEnergy < 0f)
                     tiles[y, x].currentEnergy = 0f;
 
-                if (tiles[y, x].type != Tile.TILE_INFERTIAL && tiles[y, x].type != Tile.TILE_WATER)
+                if (tiles[y, x].type != Tile_V2.TILE_INFERTIAL && tiles[y, x].type != Tile_V2.TILE_WATER)
                 {
                     float saturationToEnergyRatio = tiles[y, x].currentEnergy / tiles[y, x].maxEnergy;
                     tiles[y, x].detail.s = saturationToEnergyRatio;
@@ -220,6 +200,57 @@ public class TileMap_V2
         {
             return tiles[y, x].type;
         }
-        return Tile.TILE_WATER;
+        return Tile_V2.TILE_WATER;
     }
+
+    public float GetTileEnergy(int x, int y)
+    {
+        if (IsValidLocation(x, y) == true)
+        {
+            return tiles[y, x].currentEnergy;
+        }
+        return 0f;
+    }
+
+    /*public void RemoveCreatureFromTileList(int x, int y, int creature)
+    {
+        if (IsValidLocation(x, y) == true)
+        {
+            int index = tiles[y, x].creatureListOnTile.IndexOf(creature);
+            if (index != -1)
+            {
+                tiles[y, x].creatureListOnTile.Remove(index);
+            }
+        }
+    }
+
+    public void AddCreatureToTileList(int x, int y, int creature)
+    {
+        if (IsValidLocation(x, y) == true)
+        {
+            tiles[y, x].creatureListOnTile.Add(creature);
+        }
+    }
+
+    public List<List<int>> ExistCreatureNearTile(int x, int y)
+    {
+        List<List<int>> creatureIndexList = new List<List<int>>();
+        if (IsValidLocation(x, y) == true)
+        {
+            for (int i = y - 1; i < y + 1; i++)
+            {
+                for (int j = x - 1; j < x + 1; j++)
+                {
+                    if (IsValidLocation(j, i) == true)
+                    {
+                        List<int> list = tiles[i, j].creatureListOnTile;
+                        
+                        creatureIndexList.Add(tiles[i, j].creatureListOnTile);
+                    }
+                }
+            }
+        }
+
+        return creatureIndexList;
+    }*/
 }
