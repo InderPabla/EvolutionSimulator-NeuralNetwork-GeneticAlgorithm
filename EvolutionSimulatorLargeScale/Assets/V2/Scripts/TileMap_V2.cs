@@ -17,13 +17,14 @@ public class Tile_V2
     public HSBColor detail;
     public float maxEnergy;
     public float currentEnergy;
-
-    public List<int> creatureListOnTile = new List<int>();
+    
+    public List<Creature_V2> creatureListOnTile = new List<Creature_V2>();
 
 }
 public class TileMap_V2
 {
     Tile_V2[,] tiles;
+   
     Texture2D texture;
     int sizeX;
     int sizeY;
@@ -105,33 +106,58 @@ public class TileMap_V2
 
     bool check = false;
 
-    public void Apply(float playSpeed)
+    public void Apply(float playSpeed, bool visual)
     {
-        for (int y = 0; y < sizeY; y++)
+        if (visual == true)
         {
-            for (int x = 0; x < sizeX; x++)
+            for (int y = 0; y < sizeY; y++)
             {
-
-
-                tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed * 10f;
-
-                if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
-                    tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
-                else if (tiles[y, x].currentEnergy < 0f)
-                    tiles[y, x].currentEnergy = 0f;
-
-                if (tiles[y, x].type != Tile_V2.TILE_INFERTIAL && tiles[y, x].type != Tile_V2.TILE_WATER)
+                for (int x = 0; x < sizeX; x++)
                 {
-                    float saturationToEnergyRatio = tiles[y, x].currentEnergy / tiles[y, x].maxEnergy;
-                    tiles[y, x].detail.s = saturationToEnergyRatio;
-                    tiles[y, x].detail.b = 1f - (0.25f - (saturationToEnergyRatio * 0.25f));
 
-                    texture.SetPixel(x, y, tiles[y, x].detail.ToColor());
+
+                    tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed * 10f;
+
+                    if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
+                        tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
+                    else if (tiles[y, x].currentEnergy < 0f)
+                        tiles[y, x].currentEnergy = 0f;
+
+                    if (tiles[y, x].type != Tile_V2.TILE_INFERTIAL && tiles[y, x].type != Tile_V2.TILE_WATER)
+                    {
+                        float saturationToEnergyRatio = tiles[y, x].currentEnergy / tiles[y, x].maxEnergy;
+                        tiles[y, x].detail.s = saturationToEnergyRatio;
+                        tiles[y, x].detail.b = 1f - (0.25f - (saturationToEnergyRatio * 0.25f));
+
+                        texture.SetPixel(x, y, tiles[y, x].detail.ToColor());
+                    }
+                }
+            }
+
+            texture.Apply();
+        }
+        else
+        { 
+            for (int y = 0; y < sizeY; y++)
+            {
+                for (int x = 0; x < sizeX; x++)
+                {
+                    tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed * 10f;
+
+                    if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
+                        tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
+                    else if (tiles[y, x].currentEnergy < 0f)
+                        tiles[y, x].currentEnergy = 0f;
+
+                    if (tiles[y, x].type != Tile_V2.TILE_INFERTIAL && tiles[y, x].type != Tile_V2.TILE_WATER)
+                    {
+                        float saturationToEnergyRatio = tiles[y, x].currentEnergy / tiles[y, x].maxEnergy;
+                        tiles[y, x].detail.s = saturationToEnergyRatio;
+                        tiles[y, x].detail.b = 1f - (0.25f - (saturationToEnergyRatio * 0.25f));
+                    }
                 }
             }
         }
-
-        texture.Apply();
     }
 
     public float GetWorldDeltaTime()
@@ -212,19 +238,19 @@ public class TileMap_V2
         return 0f;
     }
 
-    /*public void RemoveCreatureFromTileList(int x, int y, int creature)
+    public void RemoveCreatureFromTileList(int x, int y, Creature_V2 creature)
     {
         if (IsValidLocation(x, y) == true)
         {
             int index = tiles[y, x].creatureListOnTile.IndexOf(creature);
             if (index != -1)
             {
-                tiles[y, x].creatureListOnTile.Remove(index);
+                tiles[y, x].creatureListOnTile.RemoveAt(index);
             }
         }
     }
 
-    public void AddCreatureToTileList(int x, int y, int creature)
+    public void AddCreatureToTileList(int x, int y, Creature_V2 creature)
     {
         if (IsValidLocation(x, y) == true)
         {
@@ -232,9 +258,10 @@ public class TileMap_V2
         }
     }
 
-    public List<List<int>> ExistCreatureNearTile(int x, int y)
+    // search in a 3x by 3x grid, (8 searches)
+    public List<List<Creature_V2>> ExistCreaturesNearTile(int x, int y)
     {
-        List<List<int>> creatureIndexList = new List<List<int>>();
+        List<List<Creature_V2>> creatureIndexList = new List<List<Creature_V2>>();
         if (IsValidLocation(x, y) == true)
         {
             for (int i = y - 1; i < y + 1; i++)
@@ -243,7 +270,7 @@ public class TileMap_V2
                 {
                     if (IsValidLocation(j, i) == true)
                     {
-                        List<int> list = tiles[i, j].creatureListOnTile;
+                        List<Creature_V2> list = tiles[i, j].creatureListOnTile;
                         
                         creatureIndexList.Add(tiles[i, j].creatureListOnTile);
                     }
@@ -252,5 +279,15 @@ public class TileMap_V2
         }
 
         return creatureIndexList;
-    }*/
+    }
+
+    //search in only the given grid 
+    public List<Creature_V2> ExistCreatureAtTile(int x, int y)
+    {
+        if (IsValidLocation(x, y) == true)
+        {
+            return tiles[y, x].creatureListOnTile;
+        }
+        return null;
+    }
 }
