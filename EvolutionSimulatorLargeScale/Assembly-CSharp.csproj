@@ -57,6 +57,7 @@
      <Compile Include="Assets\V1\Scripts\WorldManager.cs" />
      <Compile Include="Assets\V2\Scripts\Brain_V2.cs" />
      <Compile Include="Assets\V2\Scripts\Creature_V2.cs" />
+     <Compile Include="Assets\V2\Scripts\CustomCircleCollider.cs" />
      <Compile Include="Assets\V2\Scripts\TileMap_V2.cs" />
      <Compile Include="Assets\V2\Scripts\WolrdManager_V2.cs" />
  <Reference Include="UnityEngine.UI">

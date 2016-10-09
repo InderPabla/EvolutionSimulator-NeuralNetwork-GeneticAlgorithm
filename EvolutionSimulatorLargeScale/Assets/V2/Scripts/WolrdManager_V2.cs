@@ -38,9 +38,9 @@ public class WolrdManager_V2 : MonoBehaviour
     // Index 7: Memory Input 1
     // Index 8: Memory Input 2
 
-    private int playSpeed = 100;
+    private int playSpeed = 128;
     private int playSpeedVisual = 200;
-    private float worldTime = 0.001f;
+    private float worldDeltaTime = 0.001f;
     private float year = 0f;
     private bool textureLoaded = false;
     
@@ -58,7 +58,6 @@ public class WolrdManager_V2 : MonoBehaviour
             float creatureCount = creatureList.Count;
             for (int itteration = 0; itteration < playSpeed; itteration++)
             {
-
                 for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
                 {
                     Brain_V2 brain = creatureList[creatureIndex].brain;
@@ -67,7 +66,7 @@ public class WolrdManager_V2 : MonoBehaviour
                     Vector3 rightPos = creatureList[creatureIndex].rightPos;
                     int[] tileDetail = creatureList[creatureIndex].tileDetail;
                     float angle = creatureList[creatureIndex].angle;
-                    float bodySize = creatureList[creatureIndex].size;
+                    float bodyRadius = creatureList[creatureIndex].currentRadius;
                     float[] previousOutput = creatureList[creatureIndex].brain.GetOutput();
 
                     HSBColor bodyTileColor = map_v2.GetColor((int)bodyPos.x, (int)bodyPos.y);
@@ -86,7 +85,7 @@ public class WolrdManager_V2 : MonoBehaviour
                             if (!creature.Equals(creatureList[creatureIndex]))
                             {
                                 Vector3 bodyPosOfCreature = creature.bodyPos;
-                                float creatureSizeSqr = Mathf.Pow(creature.size/2f, 2f);
+                                float creatureSizeSqr = Mathf.Pow(creature.currentRadius, 2f);
                                 float distanceBetweenPointAndCircle = Mathf.Pow((bodyPosOfCreature.x - leftPos.x), 2f) + Mathf.Pow((bodyPosOfCreature.y - leftPos.y), 2f);
 
                                 //inter section occoures
@@ -108,7 +107,7 @@ public class WolrdManager_V2 : MonoBehaviour
                             if (!creature.Equals(creatureList[creatureIndex]))
                             {
                                 Vector3 bodyPosOfCreature = creature.bodyPos;
-                                float creatureSizeSqr = Mathf.Pow(creature.size/2f, 2f);
+                                float creatureSizeSqr = Mathf.Pow(creature.currentRadius, 2f);
                                 float distanceBetweenPointAndCircle = Mathf.Pow((bodyPosOfCreature.x - rightPos.x), 2f) + Mathf.Pow((bodyPosOfCreature.y - rightPos.y), 2f);
 
                                 //inter section occoures
@@ -121,7 +120,7 @@ public class WolrdManager_V2 : MonoBehaviour
                         }
                     }
 
-                    float[] output = brain.feedforward(new float[] {bodyTileColor.s, bodyTileColor.h, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s, bodySize, previousOutput[7], previousOutput[8] });
+                    float[] output = brain.feedforward(new float[] {bodyTileColor.s, bodyTileColor.h, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s, bodyRadius, previousOutput[7], previousOutput[8] });
 
                     float forwardAccel = output[0];
                     float rotationalAccel = output[1];
@@ -135,14 +134,12 @@ public class WolrdManager_V2 : MonoBehaviour
 
                     map_v2.RemoveCreatureFromTileList(tileDetail[0], tileDetail[1], creatureList[creatureIndex]);
 
-                    
-
                     //body position calculation
                     float unitAngle = angle - 90f;
                     if (unitAngle > 180)
                         unitAngle = (360f - unitAngle) * -1f;
                     Vector3 newUnit = new Vector3(Mathf.Cos(unitAngle * Mathf.Deg2Rad), Mathf.Sin(unitAngle * Mathf.Deg2Rad), 0f);
-                    Vector3 displace = newUnit * forwardAccel * worldTime * 10f;
+                    Vector3 displace = newUnit * forwardAccel * worldDeltaTime * 10f;
 
                     bodyPos += displace;
                     float mag = 1.05f;
@@ -158,7 +155,7 @@ public class WolrdManager_V2 : MonoBehaviour
                     rightPos = bodyPos + new Vector3(mag * Mathf.Cos(rightAngle), mag * Mathf.Sin(rightAngle), 0f);
 
                     //angle calculation
-                    angle += rotationalAccel * worldTime * 100f;
+                    angle += rotationalAccel * worldDeltaTime * 100f;
 
                     //copy tile detail
                     tileDetail[0] = (int)bodyPos.x;
@@ -177,7 +174,7 @@ public class WolrdManager_V2 : MonoBehaviour
                     map_v2.AddCreatureToTileList(tileDetail[0], tileDetail[1], creatureList[creatureIndex]);
                 }
 
-                year += worldTime;
+                year += worldDeltaTime;
             }
 
 
@@ -236,9 +233,8 @@ public class WolrdManager_V2 : MonoBehaviour
         LineRenderer rightLine = rightLineGameObject.GetComponent<LineRenderer>();
         leftLine.SetWidth(0.05f,0.05f);
         rightLine.SetWidth(0.05f, 0.05f);
-        Brain_V2 brain = new Brain_V2(brainNetwork, worldTime, totalCreaturesCount);
-
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos, 0f);
+        Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos, 0f, worldDeltaTime, creatureGameObject.transform.localScale.x/2f, 100f);
         creatureList.Add(creature);
 
 
