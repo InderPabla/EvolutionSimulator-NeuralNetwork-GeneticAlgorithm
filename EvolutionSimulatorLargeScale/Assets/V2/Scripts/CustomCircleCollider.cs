@@ -14,7 +14,7 @@ public class CustomCircleCollider
     private float mass;
     private float energyDensity;
 
-    private float worldDetlaTime;
+    private float worldDeltaTime;
 
     public CustomCircleCollider(float initialRadius, Vector3 position, float angle, float veloForward, float veloAngular, float mass, float energyDensity, float worldDetlaTime)
     {
@@ -26,14 +26,21 @@ public class CustomCircleCollider
         this.veloForward = veloForward;
         this.mass = mass;
         this.energyDensity = energyDensity;
-        this.worldDetlaTime = worldDetlaTime;
+        this.worldDeltaTime = worldDetlaTime;
     }
 
     public void Update(float accelForward, float accelAngular)
     {
-        veloForward += accelForward * worldDetlaTime;
-        veloAngular += accelAngular * worldDetlaTime;
+        veloForward += accelForward * worldDeltaTime;
+        veloAngular += accelAngular * worldDeltaTime;
 
+        float unitAngle = angle - 90f;
+        if (unitAngle > 180)
+            unitAngle = (360f - unitAngle) * -1f;
+        Vector3 newUnit = new Vector3(Mathf.Cos(unitAngle * Mathf.Deg2Rad), Mathf.Sin(unitAngle * Mathf.Deg2Rad), 0f);
+  
+        position += newUnit * veloForward * worldDeltaTime * 10f;
+        angle += veloAngular * worldDeltaTime;
     }
 
 
