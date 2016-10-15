@@ -281,7 +281,7 @@ public class TileMap_V2
         return creatureIndexList;
     }
 
-    //search in only the given grid 
+    //search in only the given grid, (1 search)
     public List<Creature_V2> ExistCreatureAtTile(int x, int y)
     {
         if (IsValidLocation(x, y) == true)

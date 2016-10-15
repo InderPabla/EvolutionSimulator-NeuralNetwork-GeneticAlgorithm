@@ -14,29 +14,29 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
     public HSBColor bodyColor;
     public HSBColor mouthColor;
 
-    public Vector3 bodyPos;
     public Vector3 leftPos;
     public Vector3 rightPos;
 
     public int[] tileDetail = new int[2];
 
-    public float angle;
-
     public float initialEnergy = 100f;
     public float currentEnergy = 100f;
 
-    public float initialRadius = 0.5f;
-    public float currentRadius = 0.5f;
+    public float initialRadius = 0.06f;
+    public float currentRadius = 0.06f;
     public float deltaEnergy = 0f;
 
     public int ID = -1;
     public float worldDeltaTime = 0.001f;
 
     private TileMap_V2 map;
+    private Material bodyMaterial;
+    private Material mouthMaterial;
+
     public Creature_V2(int ID, Transform trans, LineRenderer leftLine, LineRenderer rightLine, 
                        Brain_V2 brain, HSBColor bodyColor, Vector3 bodyPos, Vector3 leftPos, Vector3 rightPos, 
                        float angle, float worldDeltaTime, float initialRadius, float initialEnergy, TileMap_V2 map) 
-                       : base(initialRadius,bodyPos,angle,0f,0f,1f,(1f/100f),worldDeltaTime)
+                       : base(initialRadius,bodyPos,angle,0f,0f,1f,worldDeltaTime)
     {
         
         this.ID = ID;
@@ -44,15 +44,16 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         this.leftLine = leftLine;
         this.rightLine = rightLine;
         this.brain = brain;
-        this.bodyPos = bodyPos;
         this.bodyColor = bodyColor;
         this.leftPos = leftPos;
         this.rightPos = rightPos;
-        this.angle = angle;
         this.worldDeltaTime = worldDeltaTime;
         this.initialEnergy = initialEnergy;
         this.initialRadius = initialRadius;
         this.map = map;
+
+        this.bodyMaterial = trans.GetComponent<Renderer>().material;
+        this.mouthMaterial = trans.GetChild(0).GetComponent<Renderer>().material;
     }
 
     public bool Equals(Creature_V2 other)
@@ -118,19 +119,13 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         deltaEnergy -= 150f;
     }
 
-    public void Update() {
-
-       /* Vector3 bodyPos = this.bodyPos;
-        Vector3 leftPos = this.leftPos;
-        Vector3 rightPos = this.rightPos;
-        int[] tileDetail = this.tileDetail;
-        float angle = this.angle;
-        float bodyRadius = currentRadius;*/
+    public void UpdatePhysics()
+    {
 
         float[] previousOutput = brain.GetOutput();
-
-        HSBColor bodyTileColor = map.GetColor((int)bodyPos.x, (int)bodyPos.y);
-        HSBColor leftTileColor = map.GetColor((int)leftPos.x, (int)bodyPos.y);
+        
+        HSBColor bodyTileColor = map.GetColor((int)base.position.x, (int)base.position.y);
+        HSBColor leftTileColor = map.GetColor((int)leftPos.x, (int)leftPos.y);
         HSBColor rightTileColor = map.GetColor((int)rightPos.x, (int)rightPos.y);
 
         List<Creature_V2> creatureListAtLeftTile = map.ExistCreatureAtTile((int)leftPos.x, (int)leftPos.y);
@@ -144,16 +139,10 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
                 Creature_V2 creature = creatureListAtLeftTile[i];
                 if (!creature.Equals(this))
                 {
-                    Vector3 bodyPosOfCreature = creature.bodyPos;
-                    float creatureSizeSqr = Mathf.Pow(creature.currentRadius, 2f);
-                    float distanceBetweenPointAndCircle = Mathf.Pow((bodyPosOfCreature.x - leftPos.x), 2f) + Mathf.Pow((bodyPosOfCreature.y - leftPos.y), 2f);
-
-                    //inter section occoures
-                    if (distanceBetweenPointAndCircle <= creatureSizeSqr)
+                    if (creature.CollisionCheckWithPoint(leftPos))
                     {
                         leftTileColor = creature.bodyColor;
                     }
-                    break;
                 }
             }
         }
@@ -166,64 +155,74 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
                 Creature_V2 creature = creatureListAtRightTile[i];
                 if (!creature.Equals(this))
                 {
-                    Vector3 bodyPosOfCreature = creature.bodyPos;
-                    float creatureSizeSqr = Mathf.Pow(creature.currentRadius, 2f);
-                    float distanceBetweenPointAndCircle = Mathf.Pow((bodyPosOfCreature.x - rightPos.x), 2f) + Mathf.Pow((bodyPosOfCreature.y - rightPos.y), 2f);
-
-                    //inter section occoures
-                    if (distanceBetweenPointAndCircle <= creatureSizeSqr)
+                    if (creature.CollisionCheckWithPoint(rightPos))
                     {
                         rightTileColor = creature.bodyColor;
                     }
-                    break;
+
                 }
             }
         }
 
         float[] output = brain.feedforward(new float[] { bodyTileColor.s, bodyTileColor.h, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s, currentRadius, previousOutput[7], previousOutput[8] });
 
-        float forwardAccel = output[0];
-        float rotationalAccel = output[1];
+        float accelForward = output[0];
+        float accelAngular = output[1];
         float bodyHue = output[2];
         float mouthHue = output[3];
         float eatFood = output[4];
         float giveBrith = output[5];
         float fight = output[6];
-        this.bodyColor = new HSBColor(bodyHue, 1f, 1f);
-        this.mouthColor = new HSBColor(mouthHue, 1f, 1f);
+        this.bodyColor = new HSBColor(bodyHue,1f,1f);
+        this.mouthColor = new HSBColor(mouthHue, 1f, 1f); 
 
         map.RemoveCreatureFromTileList(tileDetail[0], tileDetail[1], this);
 
-        //body position calculation
-        float unitAngle = angle - 90f;
-        if (unitAngle > 180)
-            unitAngle = (360f - unitAngle) * -1f;
-        Vector3 newUnit = new Vector3(Mathf.Cos(unitAngle * Mathf.Deg2Rad), Mathf.Sin(unitAngle * Mathf.Deg2Rad), 0f);
-        Vector3 displace = newUnit * forwardAccel * worldDeltaTime * 10f;
 
-        bodyPos += displace;
-        float mag = 1.05f;
         //float leftAngle = (((angle+90f)+25f) * Mathf.Deg2Rad) + ((Mathf.PI/10f)*output[2]);
         //float rightAngle = (((angle+90f)-25f) * Mathf.Deg2Rad)+ ((Mathf.PI/10f) *output[3]);
-        float leftAngle = (((angle + 90f) + 25f) * Mathf.Deg2Rad);
-        float rightAngle = (((angle + 90f) - 25f) * Mathf.Deg2Rad);
 
-        //left position calculation
-        leftPos = bodyPos + new Vector3(mag * Mathf.Cos(leftAngle), mag * Mathf.Sin(leftAngle), 0f);
+        
+        base.UpdatePhysics(accelForward,accelAngular);
 
-        //right position calculation
-        rightPos = bodyPos + new Vector3(mag * Mathf.Cos(rightAngle), mag * Mathf.Sin(rightAngle), 0f);
-
-        //angle calculation
-        angle += rotationalAccel * worldDeltaTime * 100f;
+        UpdateSensors();
 
         //copy tile detail
-        tileDetail[0] = (int)bodyPos.x;
-        tileDetail[1] = (int)bodyPos.y;
+        tileDetail[0] = (int)base.position.x;
+        tileDetail[1] = (int)base.position.y;
 
-        map.Eat((int)bodyPos.x, (int)bodyPos.y);
+        map.Eat(tileDetail[0], tileDetail[1]);
 
         map.AddCreatureToTileList(tileDetail[0], tileDetail[1], this);
     }
+
+    private void UpdateSensors()
+    {
+        float leftAngle = (((base.angle + 90f) + 25f) * Mathf.Deg2Rad);
+        float rightAngle = (((base.angle + 90f) - 25f) * Mathf.Deg2Rad);
+
+        //left and right position calculation
+        float mag = 1.05f;
+        leftPos = base.position + new Vector3(mag * Mathf.Cos(leftAngle), mag * Mathf.Sin(leftAngle), 0f);
+        rightPos = base.position + new Vector3(mag * Mathf.Cos(rightAngle), mag * Mathf.Sin(rightAngle), 0f);
+    }
+
+    public void UpdateRender()
+    {
+        leftLine.SetPosition(0, position);
+        leftLine.SetPosition(1, leftPos);
+        rightLine.SetPosition(0, position);
+        rightLine.SetPosition(1, rightPos);
+
+        bodyMaterial.color = bodyColor.ToColor();
+        mouthMaterial.color = mouthColor.ToColor();
+        trans.position = position;
+        trans.eulerAngles = new Vector3(0f, 0f, angle);
+        angle = trans.eulerAngles.z; //resets it back to 0-360
+
+       
+    }
+
+
 }
 

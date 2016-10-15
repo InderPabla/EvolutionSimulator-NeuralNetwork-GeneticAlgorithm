@@ -38,7 +38,7 @@ public class WolrdManager_V2 : MonoBehaviour
     // Index 7: Memory Input 1
     // Index 8: Memory Input 2
 
-    private int playSpeed = 128;
+    private int playSpeed = 1;
     private int playSpeedVisual = 200;
     private float worldDeltaTime = 0.001f;
     private float year = 0f;
@@ -60,7 +60,7 @@ public class WolrdManager_V2 : MonoBehaviour
             {
                 for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
                 {
-                    creatureList[creatureIndex].Update();
+                    creatureList[creatureIndex].UpdatePhysics();
                 }
 
                 year += worldDeltaTime;
@@ -71,22 +71,8 @@ public class WolrdManager_V2 : MonoBehaviour
             {
                 for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
                 {
-                    HSBColor bodyColor = creatureList[creatureIndex].bodyColor;
-                    Vector3 bodyPos = creatureList[creatureIndex].bodyPos;
-                    Vector3 leftPos = creatureList[creatureIndex].leftPos;
-                    Vector3 rightPos = creatureList[creatureIndex].rightPos;
 
-                    LineRenderer leftLine = creatureList[creatureIndex].leftLine;
-                    LineRenderer rightLine = creatureList[creatureIndex].rightLine;
-                    leftLine.SetPosition(0, bodyPos);
-                    leftLine.SetPosition(1, leftPos);
-                    rightLine.SetPosition(0, bodyPos);
-                    rightLine.SetPosition(1, rightPos);
-
-                    Transform trans = creatureList[creatureIndex].trans;
-                    trans.GetComponent<Renderer>().material.color = bodyColor.ToColor();
-                    trans.position = creatureList[creatureIndex].bodyPos;
-                    trans.eulerAngles = new Vector3(0f, 0f, creatureList[creatureIndex].angle);
+                    creatureList[creatureIndex].UpdateRender();
                 }
             }
 
@@ -113,15 +99,15 @@ public class WolrdManager_V2 : MonoBehaviour
     {
         int[] randomTile = map_v2.RandomFloorTile();
         Vector3 bodyPosition = new Vector3(randomTile[0] + 0.5f, randomTile[1] + 0.5f, creaturePrefab.transform.position.z);
-        Vector3 leftPos = bodyPosition + new Vector3(-0.46f/2f, 0.95f / 2f, 0f);
-        Vector3 rightPos = bodyPosition + new Vector3(0.46f / 2f, 0.95f / 2f, 0f);
+        Vector3 leftPos = /*bodyPosition + new Vector3(-0.46f/2f, 0.95f / 2f, 0f);*/ Vector3.zero;
+        Vector3 rightPos = /*bodyPosition + new Vector3(0.46f / 2f, 0.95f / 2f, 0f);*/ Vector3.zero;
         GameObject creatureGameObject = Instantiate(creaturePrefab, bodyPosition, creaturePrefab.transform.rotation) as GameObject;
         GameObject leftLineGameObject = Instantiate(linePrefab) as GameObject;
         GameObject rightLineGameObject = Instantiate(linePrefab) as GameObject;
         LineRenderer leftLine = leftLineGameObject.GetComponent<LineRenderer>();
         LineRenderer rightLine = rightLineGameObject.GetComponent<LineRenderer>();
-        leftLine.SetWidth(0.05f,0.05f);
-        rightLine.SetWidth(0.05f, 0.05f);
+        leftLine.SetWidth(0.02f,0.02f);
+        rightLine.SetWidth(0.02f, 0.02f);
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount);
         Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos, 0f, worldDeltaTime, creatureGameObject.transform.localScale.x/2f, 100f,map_v2);
         creatureList.Add(creature);
