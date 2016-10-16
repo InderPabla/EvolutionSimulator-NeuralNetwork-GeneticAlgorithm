@@ -7,8 +7,8 @@ public class CustomCircleCollider
     public float radius;
 
     public Vector3 position;
-    public float angle;
-
+    public float rotation;
+    
     public float veloForward;
     public float veloAngular;
 
@@ -21,29 +21,29 @@ public class CustomCircleCollider
         this.position = position;
         this.radius = radius;
         this.position = position;
-        this.angle = angle;
+        this.rotation = angle;
         this.veloAngular = veloAngular;
         this.veloForward = veloForward;
         this.mass = mass;
         this.worldDeltaTime = worldDetlaTime;
     }
 
-    public void UpdatePhysics(float accelForward, float accelAngular)
+    public void UpdateColliderPhysics(float accelForward, float accelAngular)
     {
-        float unitAngle = angle - 90f;
+        float unitAngle = rotation - 90f;
         /*if (unitAngle > 180)
             unitAngle = (360f - unitAngle) * -1f;*/
         Vector3 newUnit = new Vector3(Mathf.Cos(unitAngle * Mathf.Deg2Rad), Mathf.Sin(unitAngle * Mathf.Deg2Rad), 0f);
         
         veloForward += accelForward * worldDeltaTime;
         veloAngular += accelAngular * worldDeltaTime;
-        veloForward *= (1f-0.004f);
+        veloForward *= (1f-0.04f);
         veloAngular *= (1f-0.004f);
 
         
   
         position += newUnit * veloForward /** worldDeltaTime * 10f*/;
-        angle += veloAngular /** worldDeltaTime *100f*/;
+        rotation += veloAngular /** worldDeltaTime *100f*/;
     }
 
     public bool CollisionCheckWithPoint(Vector2 point)

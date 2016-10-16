@@ -60,7 +60,7 @@ public class WolrdManager_V2 : MonoBehaviour
             {
                 for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
                 {
-                    creatureList[creatureIndex].UpdatePhysics();
+                    creatureList[creatureIndex].UpdateCreaturePhysics();
                 }
 
                 year += worldDeltaTime;
@@ -109,10 +109,8 @@ public class WolrdManager_V2 : MonoBehaviour
         leftLine.SetWidth(0.02f,0.02f);
         rightLine.SetWidth(0.02f, 0.02f);
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount);
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos, 0f, worldDeltaTime, creatureGameObject.transform.localScale.x/2f, 100f,map_v2);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, 0f, worldDeltaTime, creatureGameObject.transform.localScale.x/2f, 1f,map_v2);
         creatureList.Add(creature);
-
-
         totalCreaturesCount++;
     }
 }

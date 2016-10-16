@@ -17,21 +17,20 @@ public class Tile_V2
     public HSBColor detail;
     public float maxEnergy;
     public float currentEnergy;
-    
+
     public List<Creature_V2> creatureListOnTile = new List<Creature_V2>();
 
 }
 public class TileMap_V2
 {
-    Tile_V2[,] tiles;
-   
-    Texture2D texture;
-    int sizeX;
-    int sizeY;
+    private Tile_V2[,] tiles;
+    private Texture2D texture;
+    private int sizeX;
+    private int sizeY;
     float worldDeltaTime = 0.001f; //each year last
-    float climate = 0.25f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
-
-    List<int[]> floorTiles = new List<int[]>();
+    private float maxEnergyGrownOnTile = 0.75f;
+    private float climate = 0.25f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
+    private List<int[]> floorTiles = new List<int[]>();
 
     public TileMap_V2(Texture2D tex, int sizeX, int sizeY)
     {
@@ -52,7 +51,7 @@ public class TileMap_V2
                 float b = texColor[colorIndex].b;
 
                 tiles[y, x].detail = new HSBColor(texColor[colorIndex]);
-                tiles[y, x].detail.b = 1f;
+                //tiles[y, x].detail.b = 1f;
                 if (r == 0 && g == 0 && b == 0)
                 {
                     tiles[y, x].type = Tile_V2.TILE_WATER;
@@ -69,34 +68,34 @@ public class TileMap_V2
                     if (r == 1 && g == 0 && b == 0)
                     {
                         tiles[y, x].type = Tile_V2.TILE_RED;
-                        tiles[y, x].maxEnergy = 100f;
+                        tiles[y, x].maxEnergy = maxEnergyGrownOnTile;
                     }
                     else if (r == 0 && g == 1 && b == 0)
                     {
                         tiles[y, x].type = Tile_V2.TILE_GREEN;
-                        tiles[y, x].maxEnergy = 100f;
+                        tiles[y, x].maxEnergy = maxEnergyGrownOnTile;
                     }
                     else if (r == 0 && g == 0 && b == 1)
                     {
                         tiles[y, x].type = Tile_V2.TILE_BLUE;
-                        tiles[y, x].maxEnergy = 100f;
+                        tiles[y, x].maxEnergy = maxEnergyGrownOnTile;
                     }
                     else if (r == b)
                     {
                         tiles[y, x].type = Tile_V2.TILE_PURPLE;
-                        tiles[y, x].maxEnergy = 100f;
+                        tiles[y, x].maxEnergy = maxEnergyGrownOnTile;
                         tiles[y, x].detail = new HSBColor(0.7777778f, 1f, 1f);
                     }
                     else
                     {
                         tiles[y, x].type = Tile_V2.TILE_ORANGE;
-                        tiles[y, x].maxEnergy = 100f;
+                        tiles[y, x].maxEnergy = maxEnergyGrownOnTile;
                     }
                     floorTiles.Add(new int[] { x, y });
                 }
 
 
-                tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
+                tiles[y, x].currentEnergy = maxEnergyGrownOnTile;
 
                 colorIndex++;
             }
@@ -115,17 +114,12 @@ public class TileMap_V2
                 for (int x = 0; x < sizeX; x++)
                 {
 
-
-                    tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed * 10f;
-
-                    if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
-                        tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
-                    else if (tiles[y, x].currentEnergy < 0f)
-                        tiles[y, x].currentEnergy = 0f;
+                    if (tiles[y, x].currentEnergy < maxEnergyGrownOnTile)
+                        tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed;
 
                     if (tiles[y, x].type != Tile_V2.TILE_INFERTIAL && tiles[y, x].type != Tile_V2.TILE_WATER)
                     {
-                        float saturationToEnergyRatio = tiles[y, x].currentEnergy / tiles[y, x].maxEnergy;
+                        float saturationToEnergyRatio = tiles[y, x].currentEnergy;
                         tiles[y, x].detail.s = saturationToEnergyRatio;
                         tiles[y, x].detail.b = 1f - (0.25f - (saturationToEnergyRatio * 0.25f));
 
@@ -142,16 +136,13 @@ public class TileMap_V2
             {
                 for (int x = 0; x < sizeX; x++)
                 {
-                    tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed * 10f;
 
-                    if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
-                        tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
-                    else if (tiles[y, x].currentEnergy < 0f)
-                        tiles[y, x].currentEnergy = 0f;
+                    if (tiles[y, x].currentEnergy < maxEnergyGrownOnTile)
+                        tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed;
 
                     if (tiles[y, x].type != Tile_V2.TILE_INFERTIAL && tiles[y, x].type != Tile_V2.TILE_WATER)
                     {
-                        float saturationToEnergyRatio = tiles[y, x].currentEnergy / tiles[y, x].maxEnergy;
+                        float saturationToEnergyRatio = tiles[y, x].currentEnergy;
                         tiles[y, x].detail.s = saturationToEnergyRatio;
                         tiles[y, x].detail.b = 1f - (0.25f - (saturationToEnergyRatio * 0.25f));
                     }
@@ -168,7 +159,6 @@ public class TileMap_V2
     public HSBColor GetColor(int x, int y)
     {
         if (IsValidLocation(x, y) == true)
-            //return texture.GetPixel(x, y);
             return tiles[y, x].detail;
 
         return HSBColor.FromColor(Color.black);
@@ -183,7 +173,7 @@ public class TileMap_V2
         {
             if (tiles[y, x].currentEnergy > 0)
             {
-                energy = worldDeltaTime * 100f;
+                energy = worldDeltaTime *10f;
 
                 tiles[y, x].currentEnergy -= energy;
 
