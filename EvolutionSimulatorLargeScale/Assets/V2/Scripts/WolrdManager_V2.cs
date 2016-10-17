@@ -9,6 +9,7 @@ public class WolrdManager_V2 : MonoBehaviour
 
     public GameObject creaturePrefab;
     public GameObject linePrefab;
+    public TextMesh tileDataText;
 
     private int sizeX = 150;
     private int sizeY = 150;
@@ -48,9 +49,14 @@ public class WolrdManager_V2 : MonoBehaviour
     private TileMap_V2 map_v2;
 
     private List<Creature_V2> creatureList;
-	
-	// Update is called once per frame
-	void Update ()
+
+
+    private bool rightMouseDown;
+    private Vector3 initialMousePosition;
+    private Vector3 initialCameraPosition;
+
+    // Update is called once per frame
+    void Update ()
     {
         if (textureLoaded == true)
         {
@@ -76,8 +82,66 @@ public class WolrdManager_V2 : MonoBehaviour
                 }
             }
 
+
+            CameraMovement();
             map_v2.Apply(playSpeed, playSpeed < playSpeedVisual);
             Debug.Log(year);
+        }
+    }
+
+    void CameraMovement()
+    {
+        Vector3 mouseCoordsScreen = Input.mousePosition;
+        Vector3 mouseCoordsWorld = Camera.main.ScreenToWorldPoint(mouseCoordsScreen);
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            rightMouseDown = true;
+            initialMousePosition = Input.mousePosition;
+            initialCameraPosition = Camera.main.transform.position;
+        }
+        else if (Input.GetMouseButtonUp(1))
+        {
+            rightMouseDown = false;
+        }
+
+        if (rightMouseDown == true)
+        {
+            float ratio = (23f / Camera.main.orthographicSize) * 25f;
+            mouseCoordsScreen = (initialMousePosition - mouseCoordsScreen) / ratio;
+            Vector3 cameraPos = initialCameraPosition + mouseCoordsScreen;
+            cameraPos.z = -111;
+
+            Camera.main.transform.position = cameraPos;
+        }
+
+        if (Input.GetAxis("Mouse ScrollWheel") > 0) // forward
+        {
+            Camera.main.orthographicSize -= (Camera.main.orthographicSize/23f)*2f;
+            if (Camera.main.orthographicSize < 1f)
+                Camera.main.orthographicSize = 1f;
+
+
+            Vector3 cameraPos = Camera.main.transform.position;
+            Vector2 posChange = Vector2.Lerp(cameraPos,mouseCoordsWorld,0.1f);
+            cameraPos = posChange;
+            cameraPos.z = -111f;
+            Camera.main.transform.position = cameraPos;
+        }
+        else if (Input.GetAxis("Mouse ScrollWheel") < 0)
+        {
+            Camera.main.orthographicSize += 1f;
+        }
+
+        TileDataTextPlacement(mouseCoordsWorld);
+    }
+
+    private void TileDataTextPlacement(Vector2 mouse)
+    {
+        if (map_v2.IsValidLocation((int)mouse.x, (int)mouse.y))
+        {
+            tileDataText.text = map_v2.TileToString((int)mouse.x, (int)mouse.y);
+            tileDataText.transform.position = new Vector3((int)mouse.x + 0.5f, (int)mouse.y + 0.5f, tileDataText.transform.position.z);
         }
     }
 
@@ -109,7 +173,7 @@ public class WolrdManager_V2 : MonoBehaviour
         leftLine.SetWidth(0.02f,0.02f);
         rightLine.SetWidth(0.02f, 0.02f);
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount);
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, 0f, worldDeltaTime, creatureGameObject.transform.localScale.x/2f, 1f,map_v2);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, 1f,map_v2);
         creatureList.Add(creature);
         totalCreaturesCount++;
     }

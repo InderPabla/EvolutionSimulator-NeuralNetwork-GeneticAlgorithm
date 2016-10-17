@@ -11,6 +11,12 @@ public class Tile_V2
     public const int TILE_ORANGE = 3;
     public const int TILE_PURPLE = 4;
     public const int TILE_INFERTIAL = 0;
+    
+
+
+    public const int TILE_FERT = 0;
+    public const int TILE_INFERT = 1;
+
     public const int TILE_WATER = -1;
 
     public int type;
@@ -29,7 +35,7 @@ public class TileMap_V2
     private int sizeY;
     float worldDeltaTime = 0.001f; //each year last
     private float maxEnergyGrownOnTile = 0.75f;
-    private float climate = 0.25f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
+    private float climate = -0.1f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
     private List<int[]> floorTiles = new List<int[]>();
 
     public TileMap_V2(Texture2D tex, int sizeX, int sizeY)
@@ -40,7 +46,90 @@ public class TileMap_V2
         this.sizeY = sizeY;
 
         tiles = new Tile_V2[sizeY, sizeX];
-        int colorIndex = 0;
+
+        /*noiseSeed(SEED);
+        randomSeed(SEED);*/
+        float stepSize = 0.1f;
+        float stepSizeWater = 0.01f;
+
+        for (int x = 0; x < sizeY; x++)
+        {
+            for (int y = 0; y < sizeX; y++)
+            {
+                /*float bigForce = Mathf.Pow(((float)y) / sizeY, 0.5f);
+                float fertility = Mathf.PerlinNoise(x * stepSize * 3f, y * stepSize * 3f) * (1f - bigForce) * 5.0f + Mathf.PerlinNoise(x * stepSize * 0.5f, y * stepSize * 0.5f) * bigForce * 5.0f - 1.5f;
+                float climateType = Mathf.PerlinNoise(x * stepSize * 0.2f + 10000f, y * stepSize * 0.2f + 10000f) * 1.63f - 0.4f;
+                float waterType = Mathf.PerlinNoise(x * stepSizeWater + 10425f, y * stepSizeWater + 34224f);
+                climateType = Mathf.Min(Mathf.Max(climateType, 0f), 0.8f);
+
+                tiles[y,x] = new Tile_V2();
+
+                tiles[y, x].maxEnergy = fertility;
+                tiles[y, x].currentEnergy = fertility;
+
+
+                HSBColor color = HSBColor.HSBCOLOR_BLACK;
+
+                if (fertility > 0.05f)
+                    tiles[y, x].type = Tile_V2.TILE_FERT;
+                else if (waterType<0.5f)
+                    tiles[y, x].type = Tile_V2.TILE_INFERT;
+                else
+                    tiles[y, x].type = Tile_V2.TILE_WATER;*/
+
+
+
+                tiles[y, x] = new Tile_V2();
+                HSBColor color = HSBColor.HSBCOLOR_BLACK;
+
+                float bigForce = Mathf.Pow(((float)y) / sizeY, 0.5f);
+                float fertility = Mathf.PerlinNoise(x * stepSize * 3f, y * stepSize * 3f) * (1f - bigForce) * 5.0f + Mathf.PerlinNoise(x * stepSize * 0.5f, y * stepSize * 0.5f) * bigForce * 5.0f - 1.5f;
+                float climateType = Mathf.PerlinNoise(x * stepSize * 0.2f + 10000f, y * stepSize * 0.2f + 10000f) * 1.63f - 0.4f;
+                float waterType = Mathf.PerlinNoise(x * stepSizeWater * 3f, y * stepSizeWater * 3f) * (1f - bigForce) * 5.0f + Mathf.PerlinNoise(x * stepSizeWater * 0.5f, y * stepSizeWater * 0.5f) * bigForce * 5.0f - 1.5f;
+                climateType = Mathf.Min(Mathf.Max(climateType, 0f), 0.8f);
+
+                
+
+                tiles[y, x].maxEnergy = fertility;
+                tiles[y, x].currentEnergy = fertility;
+
+
+                
+
+                if (fertility > 0.05f)
+                    tiles[y, x].type = Tile_V2.TILE_FERT;
+                else if (waterType < 0.5f)
+                    tiles[y, x].type = Tile_V2.TILE_INFERT;
+                else
+                    tiles[y, x].type = Tile_V2.TILE_WATER;
+
+
+                if (tiles[y, x].type == Tile_V2.TILE_FERT)
+                {
+                    color.h = Mathf.Max(0f, climateType);
+                    color.s = tiles[y, x].currentEnergy;
+                    color.b = 1f - (0.25f - (color.s * 0.25f));
+                }
+                else if (tiles[y, x].type == Tile_V2.TILE_INFERT)
+                {
+                    color = HSBColor.HSBCOLOR_WHITE;
+                }
+                else if (tiles[y, x].type == Tile_V2.TILE_WATER)
+                {
+                    color = HSBColor.HSBCOLOR_BLACK;
+                }
+
+                tiles[y, x].detail = color;     
+                texture.SetPixel(x,y,tiles[y,x].detail.ToColor());
+            }
+        }
+        texture.Apply();
+
+
+
+
+
+        /*int colorIndex = 0;
         for (int y = 0; y < sizeY; y++)
         {
             for (int x = 0; x < sizeX; x++)
@@ -51,7 +140,7 @@ public class TileMap_V2
                 float b = texColor[colorIndex].b;
 
                 tiles[y, x].detail = new HSBColor(texColor[colorIndex]);
-                //tiles[y, x].detail.b = 1f;
+                tiles[y, x].detail.b = 1f;
                 if (r == 0 && g == 0 && b == 0)
                 {
                     tiles[y, x].type = Tile_V2.TILE_WATER;
@@ -99,56 +188,108 @@ public class TileMap_V2
 
                 colorIndex++;
             }
-        }
+        }*/
     }
 
 
     bool check = false;
 
+
+    int time = 0;
+    float seed = 0f;
     public void Apply(float playSpeed, bool visual)
     {
+
+        /*for (int y = 0; y < sizeY; y++)
+        {
+            for (int x = 0; x < sizeX; x++)
+            {
+
+                if (tiles[y, x].type != Tile_V2.TILE_INFERTIAL && tiles[y, x].type != Tile_V2.TILE_WATER)
+                {
+                    if (climate > 0)
+                    {
+                        if (tiles[y, x].currentEnergy< tiles[y, x].maxEnergy)
+                        {
+                            tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed;
+                        }
+                    }
+                    else if (climate < 0)
+                    {
+                        if (tiles[y, x].currentEnergy > 0f)
+                        {
+                            tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed;
+                        }
+                    }
+
+                    float saturationToEnergyRatio = tiles[y, x].currentEnergy;
+                    tiles[y, x].detail.s = saturationToEnergyRatio;
+                    tiles[y, x].detail.b = 1f - (0.25f - (saturationToEnergyRatio * 0.25f));
+
+                    texture.SetPixel(x, y, tiles[y, x].detail.ToColor());
+                }
+            }
+        }
+
         if (visual == true)
         {
-            for (int y = 0; y < sizeY; y++)
-            {
-                for (int x = 0; x < sizeX; x++)
-                {
-
-                    if (tiles[y, x].currentEnergy < maxEnergyGrownOnTile)
-                        tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed;
-
-                    if (tiles[y, x].type != Tile_V2.TILE_INFERTIAL && tiles[y, x].type != Tile_V2.TILE_WATER)
-                    {
-                        float saturationToEnergyRatio = tiles[y, x].currentEnergy;
-                        tiles[y, x].detail.s = saturationToEnergyRatio;
-                        tiles[y, x].detail.b = 1f - (0.25f - (saturationToEnergyRatio * 0.25f));
-
-                        texture.SetPixel(x, y, tiles[y, x].detail.ToColor());
-                    }
-                }
-            }
-
             texture.Apply();
-        }
-        else
-        { 
-            for (int y = 0; y < sizeY; y++)
+        }*/
+
+
+        /*time++;
+        if (time == 1)
+        {
+            time = 0;
+            seed += 0.05f;
+            float stepSize = 0.1f;
+            float stepSizeWater = 0.01f;
+            for (int x = 0; x < sizeY; x++)
             {
-                for (int x = 0; x < sizeX; x++)
+                for (int y = 0; y < sizeX; y++)
                 {
+                    float bigForce = Mathf.Pow(((float)y) / sizeY, 0.5f);
+                    float fertility = Mathf.PerlinNoise(x * stepSize * 3f + seed, y * stepSize * 3f + seed) * (1f - bigForce) * 5.0f + Mathf.PerlinNoise(x * stepSize * 0.5f + seed, y * stepSize * 0.5f + seed) * bigForce * 5.0f - 1.5f;
+                    float climateType = Mathf.PerlinNoise(x * stepSize * 0.2f + 10000f + seed, y * stepSize * 0.2f + 10000f + seed) * 1.63f - 0.4f;
+                    float waterType = Mathf.PerlinNoise(x * stepSizeWater + 10425f + seed, y * stepSizeWater + 34224f + seed);
+                    climateType = Mathf.Min(Mathf.Max(climateType, 0f), 0.8f);
 
-                    if (tiles[y, x].currentEnergy < maxEnergyGrownOnTile)
-                        tiles[y, x].currentEnergy += climate * worldDeltaTime * playSpeed;
+                    tiles[y, x] = new Tile_V2();
 
-                    if (tiles[y, x].type != Tile_V2.TILE_INFERTIAL && tiles[y, x].type != Tile_V2.TILE_WATER)
+                    tiles[y, x].maxEnergy = fertility;
+                    tiles[y, x].currentEnergy = fertility;
+
+
+                    HSBColor color = HSBColor.HSBCOLOR_BLACK;
+
+                    if (fertility > 0.05f)
+                        tiles[y, x].type = Tile_V2.TILE_FERT;
+                    else if (waterType < 0.5f)
+                        tiles[y, x].type = Tile_V2.TILE_INFERT;
+                    else
+                        tiles[y, x].type = Tile_V2.TILE_WATER;
+
+                    if (tiles[y, x].type == Tile_V2.TILE_FERT)
                     {
-                        float saturationToEnergyRatio = tiles[y, x].currentEnergy;
-                        tiles[y, x].detail.s = saturationToEnergyRatio;
-                        tiles[y, x].detail.b = 1f - (0.25f - (saturationToEnergyRatio * 0.25f));
+                        color.h = Mathf.Max(0f, climateType);
+                        color.s = tiles[y, x].currentEnergy;
+                        color.b = 1f - (0.25f - (color.s * 0.25f));
                     }
+                    else if (tiles[y, x].type == Tile_V2.TILE_INFERT)
+                    {
+                        color = HSBColor.HSBCOLOR_WHITE;
+                    }
+                    else if (tiles[y, x].type == Tile_V2.TILE_WATER)
+                    {
+                        color = HSBColor.HSBCOLOR_BLACK;
+                    }
+
+                    tiles[y, x].detail = color;
+                    texture.SetPixel(x, y, tiles[y, x].detail.ToColor());
                 }
             }
-        }
+            texture.Apply();
+        }*/
     }
 
     public float GetWorldDeltaTime()
@@ -158,8 +299,8 @@ public class TileMap_V2
 
     public HSBColor GetColor(int x, int y)
     {
-        if (IsValidLocation(x, y) == true)
-            return tiles[y, x].detail;
+        /*if (IsValidLocation(x, y) == true)
+            return tiles[y, x].detail;*/
 
         return HSBColor.FromColor(Color.black);
 
@@ -169,7 +310,7 @@ public class TileMap_V2
     {
         float energy = 0;
 
-        if (IsValidLocation(x, y) == true)
+        /*if (IsValidLocation(x, y) == true)
         {
             if (tiles[y, x].currentEnergy > 0)
             {
@@ -185,7 +326,7 @@ public class TileMap_V2
 
 
             }
-        }
+        }*/
 
         return energy;
 
@@ -200,31 +341,27 @@ public class TileMap_V2
         return true;
     }
 
-    public string TileToString(int x, int y)
-    {
-        return "X: " + x + "\nY: " + y + "\nE: " + String.Format("{0:###.00}", tiles[y, x].currentEnergy) + "\nC: " + String.Format("{0:###.00}", climate);
-    }
-
     public int[] RandomFloorTile()
     {
-        return floorTiles[UnityEngine.Random.Range(0, floorTiles.Count)];
+        //return floorTiles[UnityEngine.Random.Range(0, floorTiles.Count)];
+        return new int[] {UnityEngine.Random.Range(0,sizeY), UnityEngine.Random.Range(0, sizeX) };
     }
 
     public int GetTileType(int x, int y)
     {
-        if (IsValidLocation(x, y) == true)
+        /*if (IsValidLocation(x, y) == true)
         {
             return tiles[y, x].type;
-        }
+        }*/
         return Tile_V2.TILE_WATER;
     }
 
     public float GetTileEnergy(int x, int y)
     {
-        if (IsValidLocation(x, y) == true)
+        /*if (IsValidLocation(x, y) == true)
         {
             return tiles[y, x].currentEnergy;
-        }
+        }*/
         return 0f;
     }
 
@@ -279,5 +416,10 @@ public class TileMap_V2
             return tiles[y, x].creatureListOnTile;
         }
         return null;
+    }
+
+    public string TileToString(int x, int y)
+    {
+        return x + "," + y + "\nE: " + String.Format("{0:###.00}", tiles[y, x].currentEnergy*100f) + "\nC: " + String.Format("{0:###.00}", climate + "\nT: "+tiles[y,x].type);
     }
 }

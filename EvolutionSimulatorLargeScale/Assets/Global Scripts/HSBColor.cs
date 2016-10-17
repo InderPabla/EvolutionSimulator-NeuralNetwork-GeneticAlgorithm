@@ -3,6 +3,9 @@
 [System.Serializable]
 public struct HSBColor
 {
+    public static HSBColor HSBCOLOR_BLACK = new HSBColor(0f, 0, 0f);
+    public static HSBColor HSBCOLOR_WHITE = new HSBColor(0f, 0, 1f);
+
     public float h;
     public float s;
     public float b;
