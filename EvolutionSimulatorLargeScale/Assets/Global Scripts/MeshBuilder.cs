@@ -11,15 +11,19 @@ public class MeshBuilder : MonoBehaviour
     public GameObject worldManager;
     private const string SET_TEXTURE = "SetTexture";
 
-    private int size_x = 150;
+    /*private int size_x = 150;
     private int size_z = 150;
     private float tileSize = 1f;
     private int texWidth = 151;
-    private int texHeight = 151;
+    private int texHeight = 151;*/
+
+    private int size_x = 100;
+    private int size_z = 100;
+    private float tileSize = 1f;
+    private int texWidth = 101;
+    private int texHeight = 101;
 
     Texture2D tex = null;
-
-    public Texture2D worldTexture;
 
     // Use this for initialization
     void Start()
@@ -33,18 +37,8 @@ public class MeshBuilder : MonoBehaviour
     public void BuildTexture()
     {
         tex = new Texture2D(texWidth, texHeight);
-        for (int y = 0; y < texHeight; y++)
-        {
-            for (int x = 0; x < texWidth; x++)
-            {
-                Color worldColor = worldTexture.GetPixel(x,y);
-                tex.SetPixel(x, y, worldColor);
-            }
-        }
-
         tex.filterMode = FilterMode.Point;
         tex.wrapMode = TextureWrapMode.Clamp;
-        tex.Apply();
 
         MeshRenderer meshRender = GetComponent<MeshRenderer>();
         meshRender.sharedMaterials[0].mainTexture = tex;

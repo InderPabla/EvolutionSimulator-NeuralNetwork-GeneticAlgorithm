@@ -11,8 +11,8 @@ public class WolrdManager_V2 : MonoBehaviour
     public GameObject linePrefab;
     public TextMesh tileDataText;
 
-    private int sizeX = 150;
-    private int sizeY = 150;
+    private int sizeX = 100;
+    private int sizeY = 100;
     private int minCreatureCount = 100;
     private int totalCreaturesCount = 0;
 
@@ -39,7 +39,7 @@ public class WolrdManager_V2 : MonoBehaviour
     // Index 7: Memory Input 1
     // Index 8: Memory Input 2
 
-    private int playSpeed = 1;
+    private int playSpeed = 3;
     private int playSpeedVisual = 200;
     private float worldDeltaTime = 0.001f;
     private float year = 0f;
@@ -61,10 +61,10 @@ public class WolrdManager_V2 : MonoBehaviour
         if (textureLoaded == true)
         {
 
-            float creatureCount = creatureList.Count;
+            //float creatureCount = creatureList.Count;
             for (int itteration = 0; itteration < playSpeed; itteration++)
             {
-                for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
+                for (int creatureIndex = 0; creatureIndex < creatureList.Count; creatureIndex++)
                 {
                     creatureList[creatureIndex].UpdateCreaturePhysics();
                 }
@@ -75,6 +75,7 @@ public class WolrdManager_V2 : MonoBehaviour
 
             if (playSpeed < playSpeedVisual)
             {
+                float creatureCount = creatureList.Count;
                 for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
                 {
 
@@ -161,6 +162,7 @@ public class WolrdManager_V2 : MonoBehaviour
 
     public void CreateCreature()
     {
+        float energy = 1f;
         int[] randomTile = map_v2.RandomFloorTile();
         Vector3 bodyPosition = new Vector3(randomTile[0] + 0.5f, randomTile[1] + 0.5f, creaturePrefab.transform.position.z);
         Vector3 leftPos = /*bodyPosition + new Vector3(-0.46f/2f, 0.95f / 2f, 0f);*/ Vector3.zero;
@@ -168,13 +170,49 @@ public class WolrdManager_V2 : MonoBehaviour
         GameObject creatureGameObject = Instantiate(creaturePrefab, bodyPosition, creaturePrefab.transform.rotation) as GameObject;
         GameObject leftLineGameObject = Instantiate(linePrefab) as GameObject;
         GameObject rightLineGameObject = Instantiate(linePrefab) as GameObject;
+        leftLineGameObject.transform.parent = creatureGameObject.transform;
+        rightLineGameObject.transform.parent = creatureGameObject.transform;
+
         LineRenderer leftLine = leftLineGameObject.GetComponent<LineRenderer>();
         LineRenderer rightLine = rightLineGameObject.GetComponent<LineRenderer>();
         leftLine.SetWidth(0.02f,0.02f);
         rightLine.SetWidth(0.02f, 0.02f);
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount);
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, 1f,map_v2);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy, map_v2, this);
         creatureList.Add(creature);
         totalCreaturesCount++;
+    }
+
+    public void CreateCreature(Creature_V2 parent)
+    {
+        float energy = 1f;
+        int[] randomTile = map_v2.RandomFloorTile();
+        Vector3 bodyPosition = parent.position;
+        Vector3 leftPos = Vector3.zero;
+        Vector3 rightPos = Vector3.zero;
+        GameObject creatureGameObject = Instantiate(creaturePrefab, bodyPosition, creaturePrefab.transform.rotation) as GameObject;
+        GameObject leftLineGameObject = Instantiate(linePrefab) as GameObject;
+        GameObject rightLineGameObject = Instantiate(linePrefab) as GameObject;
+        leftLineGameObject.transform.parent = creatureGameObject.transform;
+        rightLineGameObject.transform.parent = creatureGameObject.transform;
+
+        LineRenderer leftLine = leftLineGameObject.GetComponent<LineRenderer>();
+        LineRenderer rightLine = rightLineGameObject.GetComponent<LineRenderer>();
+        leftLine.SetWidth(0.02f, 0.02f);
+        rightLine.SetWidth(0.02f, 0.02f);
+        Brain_V2 brain = new Brain_V2(parent.GetBrain(), totalCreaturesCount);
+        brain.Mutate();
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount, creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, map_v2, this);
+        creatureList.Add(creature);
+        totalCreaturesCount++;
+    }
+
+    public void RemoveCreature(Creature_V2 creature)
+    {
+        creatureList.Remove(creature);
+        if (creatureList.Count < minCreatureCount)
+        {
+            CreateCreature();
+        }
     }
 }

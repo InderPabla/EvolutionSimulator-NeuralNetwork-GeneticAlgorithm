@@ -31,10 +31,11 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
 
     private float sensorSize;
     private Energy energy;
+    private WolrdManager_V2 world;
 
     public Creature_V2(int ID, Transform trans, LineRenderer leftLine, LineRenderer rightLine, 
                        Brain_V2 brain, HSBColor bodyColor, Vector3 bodyPos, Vector3 leftPos, Vector3 rightPos, float sensorSize,
-                       float angle, float worldDeltaTime, float initialRadius, float initialEnergy, TileMap_V2 map) 
+                       float angle, float worldDeltaTime, float initialRadius, float initialEnergy, TileMap_V2 map, WolrdManager_V2 world) 
                        : base(initialRadius,bodyPos,angle,0f,0f,1f,worldDeltaTime)
     {
         
@@ -50,6 +51,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         this.worldDeltaTime = worldDeltaTime;
         this.initialRadius = initialRadius;
         this.map = map;
+        this.world = world;
 
         //energyDensity = 1f/(Mathf.PI * initialRadius * initialRadius);
 
@@ -140,6 +142,17 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
 
 
         energy.UpdateCreatureEnergy(tileDetail[0], tileDetail[1], output);
+
+        // Creature is dead ;( D: :( -_-  ;_;
+        if (energy.IsAlive() == false)
+        {
+            world.RemoveCreature(this);
+            GameObject.Destroy(trans.gameObject);
+        }
+        else if (energy.GiveBirth() == true) {
+            energy.GiveBirth(false);
+            world.CreateCreature(this);
+        }
     }
 
     private void UpdateSensors()
@@ -168,6 +181,10 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         rotation = trans.eulerAngles.z; //resets it back to 0-360
     }
 
+    public Brain_V2 GetBrain()
+    {
+        return brain;
+    }
 
 }
 

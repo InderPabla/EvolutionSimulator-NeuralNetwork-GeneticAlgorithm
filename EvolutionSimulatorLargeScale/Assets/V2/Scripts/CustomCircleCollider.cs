@@ -34,9 +34,9 @@ public class CustomCircleCollider
         /*if (unitAngle > 180)
             unitAngle = (360f - unitAngle) * -1f;*/
         Vector3 newUnit = new Vector3(Mathf.Cos(unitAngle * Mathf.Deg2Rad), Mathf.Sin(unitAngle * Mathf.Deg2Rad), 0f);
-        
+
         veloForward += accelForward * worldDeltaTime;
-        veloAngular += accelAngular * worldDeltaTime;
+        veloAngular += accelAngular * worldDeltaTime * 10f;
         veloForward *= (1f-0.04f);
         veloAngular *= (1f-0.004f);
 
