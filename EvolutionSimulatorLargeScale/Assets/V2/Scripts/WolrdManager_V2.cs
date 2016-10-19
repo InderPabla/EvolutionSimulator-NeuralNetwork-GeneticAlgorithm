@@ -10,13 +10,14 @@ public class WolrdManager_V2 : MonoBehaviour
     public GameObject creaturePrefab;
     public GameObject linePrefab;
     public TextMesh tileDataText;
+    public bool runInBackground = false;
 
     private int sizeX = 100;
     private int sizeY = 100;
-    private int minCreatureCount = 100;
+    private int minCreatureCount = 75;
     private int totalCreaturesCount = 0;
 
-    private int[] brainNetwork = new int[] { 9, 12, 9 };
+    private int[] brainNetwork = new int[] { 9, 25, 9 };
     // Output
     // Index 0: Forward acceleration
     // Index 1: Turn acceleration
@@ -39,10 +40,10 @@ public class WolrdManager_V2 : MonoBehaviour
     // Index 7: Memory Input 1
     // Index 8: Memory Input 2
 
-    private int playSpeed = 3;
-    private int playSpeedVisual = 200;
+    public int playSpeed = 100;
+    private int playSpeedVisual = 5;
     private float worldDeltaTime = 0.001f;
-    private float year = 0f;
+    public static float WORLD_CLOCK = 0f;
     private bool textureLoaded = false;
     
 
@@ -52,12 +53,16 @@ public class WolrdManager_V2 : MonoBehaviour
 
 
     private bool rightMouseDown;
+    private bool leftMouseDown;
     private Vector3 initialMousePosition;
+    private Vector3 finalMousePosition;
     private Vector3 initialCameraPosition;
-
+    private int printTime = 10;
+    private int printCounter =  0;
     // Update is called once per frame
     void Update ()
     {
+
         if (textureLoaded == true)
         {
 
@@ -69,7 +74,7 @@ public class WolrdManager_V2 : MonoBehaviour
                     creatureList[creatureIndex].UpdateCreaturePhysics();
                 }
 
-                year += worldDeltaTime;
+                WORLD_CLOCK += worldDeltaTime;
             }
 
 
@@ -85,8 +90,17 @@ public class WolrdManager_V2 : MonoBehaviour
 
 
             CameraMovement();
+
+
             map_v2.Apply(playSpeed, playSpeed < playSpeedVisual);
-            Debug.Log(year);
+
+
+            if (printTime == printCounter)
+            {
+                Debug.Log(WORLD_CLOCK + " " + creatureList.Count);
+                printCounter = 0;
+            }
+            printCounter++;
         }
     }
 
@@ -134,7 +148,46 @@ public class WolrdManager_V2 : MonoBehaviour
             Camera.main.orthographicSize += 1f;
         }
 
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            leftMouseDown = true;
+            initialMousePosition = mouseCoordsWorld;
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            leftMouseDown = false;
+            finalMousePosition = mouseCoordsWorld;
+
+            int x1 = (int)initialMousePosition.x;
+            int y1 = (int)initialMousePosition.y;
+            int x2 = (int)finalMousePosition.x;
+            int y2 = (int)finalMousePosition.y;
+            //32 36 43 25
+            Debug.LogError(x1 + " " + y1 +" "+x2+" "+y2);
+            for (int y = y2; y <= y1; y++)
+            {
+                for (int x = x1; x <= x2; x++)
+                {
+                    map_v2.SetSelected(x, y);
+                }
+            }
+        }
+
+        if (leftMouseDown == true)
+        {
+            /*map_v2
+            if (map_v2.IsValidLocation((int)mouseCoordsWorld.x, (int)mouseCoordsWorld.y))
+            {
+                
+            }*/
+
+            //map_v2.SetSelected((int)mouseCoordsWorld.x, (int)mouseCoordsWorld.y);
+        }
+
         TileDataTextPlacement(mouseCoordsWorld);
+
+        ButtonActionCheck();
     }
 
     private void TileDataTextPlacement(Vector2 mouse)
@@ -146,8 +199,17 @@ public class WolrdManager_V2 : MonoBehaviour
         }
     }
 
+    private void ButtonActionCheck()
+    {
+        if (Input.GetKeyDown(KeyCode.Delete))
+        {
+            map_v2.DeleteAllBodiesOnSelected();
+        } 
+    }
+
     public void SetTexture(Texture2D tex)
     {
+        Application.runInBackground = this.runInBackground;
         map_v2 = new TileMap_V2(tex, sizeX, sizeY);
 
         creatureList = new List<Creature_V2>();
@@ -175,9 +237,12 @@ public class WolrdManager_V2 : MonoBehaviour
 
         LineRenderer leftLine = leftLineGameObject.GetComponent<LineRenderer>();
         LineRenderer rightLine = rightLineGameObject.GetComponent<LineRenderer>();
+
         leftLine.SetWidth(0.02f,0.02f);
         rightLine.SetWidth(0.02f, 0.02f);
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount);
+        creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
+
         Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy, map_v2, this);
         creatureList.Add(creature);
         totalCreaturesCount++;
@@ -202,6 +267,8 @@ public class WolrdManager_V2 : MonoBehaviour
         rightLine.SetWidth(0.02f, 0.02f);
         Brain_V2 brain = new Brain_V2(parent.GetBrain(), totalCreaturesCount);
         brain.Mutate();
+        creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
+
         Creature_V2 creature = new Creature_V2(totalCreaturesCount, creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, map_v2, this);
         creatureList.Add(creature);
         totalCreaturesCount++;

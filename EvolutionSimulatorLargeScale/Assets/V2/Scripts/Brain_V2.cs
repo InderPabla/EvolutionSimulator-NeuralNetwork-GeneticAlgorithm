@@ -224,7 +224,7 @@ public class Brain_V2 : IEquatable<Brain_V2>
                 {
                     float weight = weights[i][j][k];
 
-                    int randomNumber = UnityEngine.Random.Range(1, 101); //random number between 1 and 100
+                    int randomNumber = UnityEngine.Random.Range(1, 501); //random number between 1 and 100
                     if (randomNumber <= 1)
                     { //if 1
                       //flip sign of weight
@@ -253,5 +253,10 @@ public class Brain_V2 : IEquatable<Brain_V2>
             }
         }
 
+        //Mutate name
+        int index = UnityEngine.Random.Range(0, name.Length);
+        char[] nameChar = name.ToCharArray();
+        nameChar[index] = (char)UnityEngine.Random.Range(97, 123);
+        name = new string(nameChar);
     }
 }

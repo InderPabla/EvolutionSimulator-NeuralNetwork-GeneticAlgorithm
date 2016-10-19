@@ -6,6 +6,7 @@ using System.Collections.Generic;
 public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
 {
     private Transform trans = null; //Transform of this object
+    private Transform textTrans = null;
     private LineRenderer leftLine = null;
     private LineRenderer rightLine = null;
 
@@ -53,6 +54,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         this.map = map;
         this.world = world;
 
+        this.textTrans = trans.GetChild(1).GetComponent<TextMesh>().transform;
         //energyDensity = 1f/(Mathf.PI * initialRadius * initialRadius);
 
         this.bodyMaterial = trans.GetComponent<Renderer>().material;
@@ -68,7 +70,6 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
 
         return (other.ID == this.ID);
     }
-
 
     /**/
 
@@ -119,12 +120,12 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         }
 
 
-        float[] output = brain.feedforward(new float[] { bodyTileColor.s, bodyTileColor.h, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s, currentRadius, previousOutput[7], previousOutput[8] });
+        float[] output = brain.feedforward(new float[] { bodyTileColor.h, bodyTileColor.s, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s, currentRadius, previousOutput[7], previousOutput[8] });
 
         float accelForward = output[0];
         float accelAngular = output[1];
-        float bodyHue = output[2];
-        float mouthHue = output[3];
+        float bodyHue = Mathf.Abs(output[2]);
+        float mouthHue = Mathf.Abs(output[3]);
         this.bodyColor = new HSBColor(bodyHue,1f,1f);
         this.mouthColor = new HSBColor(mouthHue, 1f, 1f); 
 
@@ -141,13 +142,12 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         map.AddCreatureToTileList(tileDetail[0], tileDetail[1], this);
 
 
-        energy.UpdateCreatureEnergy(tileDetail[0], tileDetail[1], output);
+        energy.UpdateCreatureEnergy(tileDetail[0], tileDetail[1], output, bodyTileColor.h);
 
         // Creature is dead ;( D: :( -_-  ;_;
         if (energy.IsAlive() == false)
         {
-            world.RemoveCreature(this);
-            GameObject.Destroy(trans.gameObject);
+            Kill();
         }
         else if (energy.GiveBirth() == true) {
             energy.GiveBirth(false);
@@ -179,6 +179,9 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         trans.position = position;
         trans.eulerAngles = new Vector3(0f, 0f, rotation);
         rotation = trans.eulerAngles.z; //resets it back to 0-360
+
+        textTrans.eulerAngles = new Vector3(0, 0, 0f);
+        textTrans.position = position + new Vector3(0f, 0.4f, 0f);
     }
 
     public Brain_V2 GetBrain()
@@ -186,5 +189,16 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         return brain;
     }
 
+    public void KillWithEnergy()
+    {
+        energy.SetKillEnergy();
+    }
+
+    public void Kill()
+    {
+        map.RemoveCreatureFromTileList(tileDetail[0], tileDetail[1], this);
+        world.RemoveCreature(this);
+        GameObject.Destroy(trans.gameObject);
+    }
 }
 
