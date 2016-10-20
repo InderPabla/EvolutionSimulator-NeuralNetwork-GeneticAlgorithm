@@ -3,7 +3,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 
-public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
+public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, IComparable
 {
     private Transform trans = null; //Transform of this object
     private Transform textTrans = null;
@@ -20,10 +20,11 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
 
     private int[] tileDetail = new int[2];
 
-    private float initialRadius = 0.06f;
-    private float currentRadius = 0.06f;
+    private float initialRadius = 0.04f;
+    private float currentRadius = 0.04f;
 
     private int ID = -1;
+    private int generation;
     private float worldDeltaTime = 0.001f;
 
     private TileMap_V2 map;
@@ -34,13 +35,16 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
     private Energy energy;
     private WolrdManager_V2 world;
 
-    public Creature_V2(int ID, Transform trans, LineRenderer leftLine, LineRenderer rightLine, 
+    private List<Creature_V2> children;
+
+    public Creature_V2(int ID, int generation, Transform trans, LineRenderer leftLine, LineRenderer rightLine, 
                        Brain_V2 brain, HSBColor bodyColor, Vector3 bodyPos, Vector3 leftPos, Vector3 rightPos, float sensorSize,
                        float angle, float worldDeltaTime, float initialRadius, float initialEnergy, TileMap_V2 map, WolrdManager_V2 world) 
                        : base(initialRadius,bodyPos,angle,0f,0f,1f,worldDeltaTime)
     {
         
         this.ID = ID;
+        this.generation = generation;
         this.trans = trans;
         this.leftLine = leftLine;
         this.rightLine = rightLine;
@@ -55,6 +59,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         this.world = world;
 
         this.textTrans = trans.GetChild(1).GetComponent<TextMesh>().transform;
+        this.children = new List<Creature_V2>();
         //energyDensity = 1f/(Mathf.PI * initialRadius * initialRadius);
 
         this.bodyMaterial = trans.GetComponent<Renderer>().material;
@@ -200,5 +205,42 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>
         world.RemoveCreature(this);
         GameObject.Destroy(trans.gameObject);
     }
+
+    public int GetGeneration()
+    {
+        return generation;
+    }
+
+    public void AddChildren(Creature_V2 child)
+    {
+        children.Add(child);
+    }
+
+    public int CompareTo(object obj)
+    {
+        if (obj == null) return 1;
+
+        Creature_V2 otherCreature = obj as Creature_V2;
+        if (otherCreature != null)
+            return this.ID.CompareTo(otherCreature.ID);
+        else
+            throw new ArgumentException("Object is not a Temperature");
+    }
+
+    public int GetID()
+    {
+        return ID;
+    }
+
+    public List<Creature_V2> GetChildren()
+    {
+        return children;
+    }
+
+    public string GetName()
+    {
+        return brain.GetName();
+    }
 }
+
 

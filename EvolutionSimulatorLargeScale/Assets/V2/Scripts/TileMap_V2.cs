@@ -325,4 +325,27 @@ public class TileMap_V2
             }
         }
     }
+
+    public List<Creature_V2> GetAllBodiesOnSelected()
+    {
+        List<Creature_V2> selectedCreatures = new List<Creature_V2>();
+        for (int x = 0; x < sizeY; x++)
+        {
+            for (int y = 0; y < sizeX; y++)
+            {
+                if (tiles[y, x].selected == true)
+                {
+                    tiles[y, x].selected = false;
+                    for (int i = 0; i < tiles[y, x].creatureListOnTile.Count; i++)
+                    {
+                        selectedCreatures.Add(tiles[y, x].creatureListOnTile[i]);
+                    }
+                }
+            }
+        }
+
+        return selectedCreatures;
+
+    }
+    
 }

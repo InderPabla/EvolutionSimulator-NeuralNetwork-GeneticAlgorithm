@@ -57,7 +57,7 @@ public class WolrdManager_V2 : MonoBehaviour
     private Vector3 initialMousePosition;
     private Vector3 finalMousePosition;
     private Vector3 initialCameraPosition;
-    private int printTime = 10;
+    private int printTime = 100;
     private int printCounter =  0;
     // Update is called once per frame
     void Update ()
@@ -163,8 +163,10 @@ public class WolrdManager_V2 : MonoBehaviour
             int y1 = (int)initialMousePosition.y;
             int x2 = (int)finalMousePosition.x;
             int y2 = (int)finalMousePosition.y;
-            //32 36 43 25
-            Debug.LogError(x1 + " " + y1 +" "+x2+" "+y2);
+
+           
+            //Debug.LogError(x1 + " " + y1 +" "+x2+" "+y2);
+
             for (int y = y2; y <= y1; y++)
             {
                 for (int x = x1; x <= x2; x++)
@@ -204,7 +206,51 @@ public class WolrdManager_V2 : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Delete))
         {
             map_v2.DeleteAllBodiesOnSelected();
-        } 
+        }
+        else if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Creature_V2[] allSelectedCreatures = map_v2.GetAllBodiesOnSelected().ToArray();
+            Array.Sort<Creature_V2>(allSelectedCreatures);
+
+
+            //each creature has a list of creatures that are its CHILDREN!
+            if (allSelectedCreatures.Length > 0)
+            {
+                string creatureID1 = TraverseRecursive(allSelectedCreatures[0]);
+
+
+
+                /*for (int i = 0; i < allSelectedCreatures.Length; i++)
+                {
+                    creatureID += allSelectedCreatures[i].GetID() + " ";
+                }*/
+                Debug.LogError(creatureID1);
+                /*Hashtable collections = new Hashtable();
+                for (int i = 0; i < allSelectedCreaturesList.Count; i++)
+                {
+                    int generation = allSelectedCreaturesList[i].GetGeneration();
+                }*/
+            }
+        }
+    }
+
+    public string TraverseRecursive(Creature_V2 parent)
+    {
+        string add = "";
+        List<Creature_V2> children = parent.GetChildren();
+
+        if (children.Count == 0)
+        {
+            add = parent.GetID() + "::" + parent.GetName()+"__";
+            return add;
+        }
+
+        for (int i = 0; i < children.Count; i++)
+        {
+            add += TraverseRecursive(children[i]);
+        }
+
+        return parent.GetID() + "::" + parent.GetName()+ "==>" +add;
     }
 
     public void SetTexture(Texture2D tex)
@@ -243,7 +289,7 @@ public class WolrdManager_V2 : MonoBehaviour
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount);
         creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy, map_v2, this);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount,0,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy, map_v2, this);
         creatureList.Add(creature);
         totalCreaturesCount++;
     }
@@ -269,9 +315,11 @@ public class WolrdManager_V2 : MonoBehaviour
         brain.Mutate();
         creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount, creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, map_v2, this);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount, parent.GetGeneration()+1,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, map_v2, this);
         creatureList.Add(creature);
         totalCreaturesCount++;
+
+        parent.AddChildren(creature);
     }
 
     public void RemoveCreature(Creature_V2 creature)
