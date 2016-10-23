@@ -10,6 +10,7 @@ public class WolrdManager_V2 : MonoBehaviour
     public GameObject creaturePrefab;
     public GameObject linePrefab;
     public TextMesh tileDataText;
+    public AncestryTreeMaker ancestryTree;
     public bool runInBackground = false;
 
     private int sizeX = 100;
@@ -17,7 +18,7 @@ public class WolrdManager_V2 : MonoBehaviour
     private int minCreatureCount = 75;
     private int totalCreaturesCount = 0;
 
-    private int[] brainNetwork = new int[] { 9, 25, 9 };
+    private int[] brainNetwork = new int[] {15, 30, 9};
     // Output
     // Index 0: Forward acceleration
     // Index 1: Turn acceleration
@@ -41,7 +42,10 @@ public class WolrdManager_V2 : MonoBehaviour
     // Index 8: Memory Input 2
 
     public int playSpeed = 100;
-    private int playSpeedVisual = 5;
+    public int slowFactor = 1;
+
+    private int slowFactorCounter = 0;
+    private int playSpeedVisual = 11;
     private float worldDeltaTime = 0.001f;
     public static float WORLD_CLOCK = 0f;
     private bool textureLoaded = false;
@@ -59,6 +63,7 @@ public class WolrdManager_V2 : MonoBehaviour
     private Vector3 initialCameraPosition;
     private int printTime = 100;
     private int printCounter =  0;
+
     // Update is called once per frame
     void Update ()
     {
@@ -66,33 +71,35 @@ public class WolrdManager_V2 : MonoBehaviour
         if (textureLoaded == true)
         {
 
-            //float creatureCount = creatureList.Count;
-            for (int itteration = 0; itteration < playSpeed; itteration++)
+
+            if (slowFactorCounter >= slowFactor)
             {
-                for (int creatureIndex = 0; creatureIndex < creatureList.Count; creatureIndex++)
+                for (int itteration = 0; itteration < playSpeed; itteration++)
                 {
-                    creatureList[creatureIndex].UpdateCreaturePhysics();
+                    for (int creatureIndex = 0; creatureIndex < creatureList.Count; creatureIndex++)
+                    {
+                        creatureList[creatureIndex].UpdateCreaturePhysics();
+                    }
+
+                    WORLD_CLOCK += worldDeltaTime;
                 }
 
-                WORLD_CLOCK += worldDeltaTime;
-            }
 
-
-            if (playSpeed < playSpeedVisual)
-            {
-                float creatureCount = creatureList.Count;
-                for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
+                if (playSpeed < playSpeedVisual)
                 {
+                    float creatureCount = creatureList.Count;
+                    for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
+                    {
 
-                    creatureList[creatureIndex].UpdateRender();
+                        creatureList[creatureIndex].UpdateRender();
+                    }
                 }
+
+                map_v2.Apply(playSpeed, playSpeed < playSpeedVisual);
+                slowFactorCounter = 0;
             }
-
-
+            slowFactorCounter++;
             CameraMovement();
-
-
-            map_v2.Apply(playSpeed, playSpeed < playSpeedVisual);
 
 
             if (printTime == printCounter)
@@ -133,8 +140,8 @@ public class WolrdManager_V2 : MonoBehaviour
         if (Input.GetAxis("Mouse ScrollWheel") > 0) // forward
         {
             Camera.main.orthographicSize -= (Camera.main.orthographicSize/23f)*2f;
-            if (Camera.main.orthographicSize < 1f)
-                Camera.main.orthographicSize = 1f;
+            if (Camera.main.orthographicSize < 0.01f)
+                Camera.main.orthographicSize = 0.01f;
 
 
             Vector3 cameraPos = Camera.main.transform.position;
@@ -145,7 +152,8 @@ public class WolrdManager_V2 : MonoBehaviour
         }
         else if (Input.GetAxis("Mouse ScrollWheel") < 0)
         {
-            Camera.main.orthographicSize += 1f;
+            Camera.main.orthographicSize += (Camera.main.orthographicSize / 23f) * 3f;
+            //Camera.main.orthographicSize += 2f;
         }
 
 
@@ -187,7 +195,7 @@ public class WolrdManager_V2 : MonoBehaviour
             //map_v2.SetSelected((int)mouseCoordsWorld.x, (int)mouseCoordsWorld.y);
         }
 
-        TileDataTextPlacement(mouseCoordsWorld);
+        TileDataTextPlacement(mouseCoordsWorld);  
 
         ButtonActionCheck();
     }
@@ -205,52 +213,28 @@ public class WolrdManager_V2 : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Delete))
         {
-            map_v2.DeleteAllBodiesOnSelected();
+            OnDeletePress();
         }
         else if (Input.GetKeyDown(KeyCode.Space))
         {
-            Creature_V2[] allSelectedCreatures = map_v2.GetAllBodiesOnSelected().ToArray();
-            Array.Sort<Creature_V2>(allSelectedCreatures);
-
-
-            //each creature has a list of creatures that are its CHILDREN!
-            if (allSelectedCreatures.Length > 0)
-            {
-                string creatureID1 = TraverseRecursive(allSelectedCreatures[0]);
-
-
-
-                /*for (int i = 0; i < allSelectedCreatures.Length; i++)
-                {
-                    creatureID += allSelectedCreatures[i].GetID() + " ";
-                }*/
-                Debug.LogError(creatureID1);
-                /*Hashtable collections = new Hashtable();
-                for (int i = 0; i < allSelectedCreaturesList.Count; i++)
-                {
-                    int generation = allSelectedCreaturesList[i].GetGeneration();
-                }*/
-            }
+            OnSpacePress();
         }
     }
 
-    public string TraverseRecursive(Creature_V2 parent)
+    public void OnDeletePress()
     {
-        string add = "";
-        List<Creature_V2> children = parent.GetChildren();
+        map_v2.DeleteAllBodiesOnSelected();
+    }
 
-        if (children.Count == 0)
+    public void OnSpacePress()
+    {
+        List<Creature_V2> allSelectedCreatures = map_v2.GetAllBodiesOnSelected();
+        ancestryTree.ResetAllNodes();
+        
+        if (allSelectedCreatures.Count > 0)
         {
-            add = parent.GetID() + "::" + parent.GetName()+"__";
-            return add;
+            ancestryTree.MakeTree(allSelectedCreatures);
         }
-
-        for (int i = 0; i < children.Count; i++)
-        {
-            add += TraverseRecursive(children[i]);
-        }
-
-        return parent.GetID() + "::" + parent.GetName()+ "==>" +add;
     }
 
     public void SetTexture(Texture2D tex)
@@ -283,13 +267,22 @@ public class WolrdManager_V2 : MonoBehaviour
 
         LineRenderer leftLine = leftLineGameObject.GetComponent<LineRenderer>();
         LineRenderer rightLine = rightLineGameObject.GetComponent<LineRenderer>();
-
         leftLine.SetWidth(0.02f,0.02f);
         rightLine.SetWidth(0.02f, 0.02f);
+
+        LineRenderer[] lineSensor = new LineRenderer[4];
+        for (int i = 0; i < lineSensor.Length; i++)
+        {
+            GameObject newLine = Instantiate(linePrefab) as GameObject;
+            newLine.transform.parent = creatureGameObject.transform;
+            lineSensor[i] = newLine.GetComponent<LineRenderer>();
+            lineSensor[i].SetWidth(0.02f, 0.02f);
+        }
+
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount);
         creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount,0,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy, map_v2, this);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount,0,creatureGameObject.transform, leftLine, rightLine, lineSensor, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy, map_v2, this);
         creatureList.Add(creature);
         totalCreaturesCount++;
     }
@@ -311,11 +304,20 @@ public class WolrdManager_V2 : MonoBehaviour
         LineRenderer rightLine = rightLineGameObject.GetComponent<LineRenderer>();
         leftLine.SetWidth(0.02f, 0.02f);
         rightLine.SetWidth(0.02f, 0.02f);
+
+        LineRenderer[] lineSensor = new LineRenderer[4];
+        for (int i = 0; i < lineSensor.Length; i++) {
+            GameObject newLine = Instantiate(linePrefab) as GameObject;
+            newLine.transform.parent = creatureGameObject.transform;
+            lineSensor[i] = newLine.GetComponent<LineRenderer>();
+            lineSensor[i].SetWidth(0.02f, 0.02f);
+        }
+
         Brain_V2 brain = new Brain_V2(parent.GetBrain(), totalCreaturesCount);
         brain.Mutate();
         creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount, parent.GetGeneration()+1,creatureGameObject.transform, leftLine, rightLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, map_v2, this);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount, parent.GetGeneration()+1,creatureGameObject.transform, leftLine, rightLine, lineSensor, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, map_v2, this);
         creatureList.Add(creature);
         totalCreaturesCount++;
 

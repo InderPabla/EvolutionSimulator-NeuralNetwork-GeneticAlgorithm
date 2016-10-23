@@ -20,6 +20,7 @@ public class Tile_V2
     public float lastUpdated = 0;
     public bool selected = false;
 }
+
 public class TileMap_V2
 {
     private Tile_V2[,] tiles;
@@ -28,7 +29,7 @@ public class TileMap_V2
     private int sizeY;
     float worldDeltaTime = 0.001f; //each year last
     private float maxEnergyGrownOnTile = 0.75f;
-    private float climate = 1f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
+    private float climate = 10f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
     private List<int[]> floorTiles = new List<int[]>();
 
     public TileMap_V2(Texture2D tex, int sizeX, int sizeY)
@@ -49,10 +50,17 @@ public class TileMap_V2
         {
             for (int y = 0; y < sizeX; y++)
             {
-                float bigForce = Mathf.Pow(((float)y) / sizeY, 0.5f);
+                /*float bigForce = Mathf.Pow(((float)y) / sizeY, 0.5f);
                 float fertility = Mathf.PerlinNoise(x * stepSize * 3f, y * stepSize * 3f) * (1f - bigForce) * 5.0f + Mathf.PerlinNoise(x * stepSize * 0.5f, y * stepSize * 0.5f) * bigForce * 5.0f - 1.5f;
                 float climateType = Mathf.PerlinNoise(x * stepSize * 0.2f + 10000f, y * stepSize * 0.2f + 10000f) * 1.63f - 0.4f;
-                float waterType = Mathf.PerlinNoise(x * stepSizeWater + 10425f, y * stepSizeWater + 34224f);
+                float waterType = Mathf.PerlinNoise(x * stepSizeWater + 10425f, y * stepSizeWater + 34224f);*/
+
+                float seed = -0.1f;
+                float bigForce = Mathf.Pow(((float)y) / sizeY, 0.5f);
+                float fertility = Mathf.PerlinNoise(x * stepSize * 3f + seed, y * stepSize * 3f + seed) * (1f - bigForce) * 5.0f + Mathf.PerlinNoise(x * stepSize * 0.5f + seed, y * stepSize * 0.5f + seed) * bigForce * 5.0f - 1.5f;
+                float climateType = Mathf.PerlinNoise(x * stepSize * 0.2f + 10000f + seed, y * stepSize * 0.2f + 10000f + seed) * 1.63f - 0.4f;
+                float waterType = Mathf.PerlinNoise(x * stepSizeWater + 10425f + seed, y * stepSizeWater + 34224f + seed);
+
                 climateType = Mathf.Min(Mathf.Max(climateType, 0f), 0.8f);
 
                 tiles[y,x] = new Tile_V2();
@@ -258,9 +266,9 @@ public class TileMap_V2
     }
 
     // search in a 3x by 3x grid, (8 searches)
-    public List<List<Creature_V2>> ExistCreaturesNearTile(int x, int y)
+    public List<Creature_V2> ExistCreaturesNearTile(int x, int y)
     {
-        List<List<Creature_V2>> creatureIndexList = new List<List<Creature_V2>>();
+        List<Creature_V2> creatureIndexList = new List<Creature_V2>();
         if (IsValidLocation(x, y) == true)
         {
             for (int i = y - 1; i < y + 1; i++)
@@ -271,7 +279,7 @@ public class TileMap_V2
                     {
                         List<Creature_V2> list = tiles[i, j].creatureListOnTile;
                         
-                        creatureIndexList.Add(tiles[i, j].creatureListOnTile);
+                        creatureIndexList.AddRange(tiles[i, j].creatureListOnTile);
                     }
                 }
             }
@@ -279,6 +287,37 @@ public class TileMap_V2
 
         return creatureIndexList;
     }
+
+    // search in based on float coords
+    public List<Creature_V2> ExistCreaturesNearPrecisionTile(float x, float y, float radius)
+    {
+        List<Creature_V2> creatureIndexList = new List<Creature_V2>();
+
+
+        if (IsValidLocation((int)x, (int)y) == true)
+        {
+            int x1 = (int)(x - radius);
+            int x2 = (int)(x + radius);
+            int y1 = (int)(y - radius);
+            int y2 = (int)(y + radius);
+
+            for (int i = y1; i < y2+1; i++)
+            {
+                for (int j = x1; j < x2 + 1; j++)
+                {
+                    if (IsValidLocation(j, i) == true)
+                    {
+                        List<Creature_V2> list = tiles[i, j].creatureListOnTile;
+
+                        creatureIndexList.AddRange(tiles[i, j].creatureListOnTile);
+                    }
+                }
+            }
+        }
+
+        return creatureIndexList;
+    }
+
 
     //search in only the given grid, (1 search)
     public List<Creature_V2> ExistCreatureAtTile(int x, int y)
@@ -343,9 +382,17 @@ public class TileMap_V2
                 }
             }
         }
-
         return selectedCreatures;
+    }
 
+    public void AddEnergyToTile(int x, int y, float energy)
+    {
+        if (IsValidLocation(x, y) == true && tiles[y,x].type == Tile_V2.TILE_FERT)
+        {
+            tiles[y, x].currentEnergy += energy;
+            if (tiles[y, x].currentEnergy > 1f)
+                tiles[y, x].currentEnergy = 1f;
+        }
     }
     
 }

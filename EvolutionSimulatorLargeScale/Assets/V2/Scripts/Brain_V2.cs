@@ -137,7 +137,10 @@ public class Brain_V2 : IEquatable<Brain_V2>
                     value += weights[weightLayerIndex][j][k] * neurons[i - 1][k];
                 }
 
-                neurons[i][j] = tanh(value);
+                //if (i < neurons.Length - 1)
+                    neurons[i][j] = tanh(value);
+                //else
+                    //neurons[i][j] = value;
             }
             weightLayerIndex++;
         }
@@ -224,24 +227,24 @@ public class Brain_V2 : IEquatable<Brain_V2>
                 {
                     float weight = weights[i][j][k];
 
-                    int randomNumber = UnityEngine.Random.Range(1, 501); //random number between 1 and 100
-                    if (randomNumber <= 1)
+                    int randomNumber1 = UnityEngine.Random.Range(1, 501); //random number between 1 and 100
+                    if (randomNumber1 <= 1)
                     { //if 1
                       //flip sign of weight
                         weight *= -1f;
                     }
-                    else if (randomNumber <= 2)
+                    else if (randomNumber1 <= 2)
                     { //if 2
                       //pick random weight between -1 and 1
                         weight = UnityEngine.Random.Range(-1f, 1f);
                     }
-                    else if (randomNumber <= 3)
+                    else if (randomNumber1 <= 3)
                     { //if 3
                       //randomly increase by 0% to 100%
                         float factor = UnityEngine.Random.Range(0f, 1f) + 1f;
                         weight *= factor;
                     }
-                    else if (randomNumber <= 4)
+                    else if (randomNumber1 <= 4)
                     { //if 4
                       //randomly decrease by 0% to 100%
                         float factor = UnityEngine.Random.Range(0f, 1f);
@@ -256,7 +259,44 @@ public class Brain_V2 : IEquatable<Brain_V2>
         //Mutate name
         int index = UnityEngine.Random.Range(0, name.Length);
         char[] nameChar = name.ToCharArray();
-        nameChar[index] = (char)UnityEngine.Random.Range(97, 123);
-        name = new string(nameChar);
+        List<char> nameCharList = new List<char>(nameChar);
+
+        int randomNumber = UnityEngine.Random.Range(0, 3);
+        if (randomNumber == 0)
+        {
+            nameChar[index] = (char)UnityEngine.Random.Range(97, 123);
+            name = new string(nameChar);
+        }
+        else if (randomNumber == 1) {
+            if (nameCharList.Count >= 4)
+            {
+                nameCharList.RemoveAt(UnityEngine.Random.Range(0,nameCharList.Count));
+            
+            }
+            else
+            {
+                nameCharList.Add((char)UnityEngine.Random.Range(97, 123));
+            }
+
+            nameChar = nameCharList.ToArray();
+            name = new string(nameChar);
+        }
+        else if (randomNumber == 2)
+        {
+
+            if (nameCharList.Count <10)
+            {
+                int locationToAdd = UnityEngine.Random.Range(0,nameCharList.Count);
+                nameCharList.Insert(locationToAdd,(char)UnityEngine.Random.Range(97, 123));
+            }
+            else
+            {
+                nameCharList.RemoveAt(UnityEngine.Random.Range(0, nameCharList.Count));
+            }
+
+            nameChar = nameCharList.ToArray();
+            name = new string(nameChar);
+
+        }
     }
 }

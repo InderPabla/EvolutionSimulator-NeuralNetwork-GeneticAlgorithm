@@ -55,6 +55,7 @@
      <Compile Include="Assets\V1\Scripts\Creature.cs" />
      <Compile Include="Assets\V1\Scripts\TileMap.cs" />
      <Compile Include="Assets\V1\Scripts\WorldManager.cs" />
+     <Compile Include="Assets\V2\Scripts\AncestryTreeMaker.cs" />
      <Compile Include="Assets\V2\Scripts\Brain_V2.cs" />
      <Compile Include="Assets\V2\Scripts\Creature_V2.cs" />
      <Compile Include="Assets\V2\Scripts\CustomCircleCollider.cs" />
