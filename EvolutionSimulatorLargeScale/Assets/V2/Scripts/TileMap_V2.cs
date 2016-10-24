@@ -60,7 +60,7 @@ public class TileMap_V2
                 float fertility = Mathf.PerlinNoise(x * stepSize * 3f + seed, y * stepSize * 3f + seed) * (1f - bigForce) * 5.0f + Mathf.PerlinNoise(x * stepSize * 0.5f + seed, y * stepSize * 0.5f + seed) * bigForce * 5.0f - 1.5f;
                 float climateType = Mathf.PerlinNoise(x * stepSize * 0.2f + 10000f + seed, y * stepSize * 0.2f + 10000f + seed) * 1.63f - 0.4f;
                 float waterType = Mathf.PerlinNoise(x * stepSizeWater + 10425f + seed, y * stepSizeWater + 34224f + seed);
-
+                
                 climateType = Mathf.Min(Mathf.Max(climateType, 0f), 0.8f);
 
                 tiles[y,x] = new Tile_V2();

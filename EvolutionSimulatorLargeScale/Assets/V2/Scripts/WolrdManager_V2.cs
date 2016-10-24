@@ -18,7 +18,7 @@ public class WolrdManager_V2 : MonoBehaviour
     private int minCreatureCount = 75;
     private int totalCreaturesCount = 0;
 
-    private int[] brainNetwork = new int[] {15, 30, 9};
+    private int[] brainNetwork = new int[] {15, 25,25,25, 9};
     // Output
     // Index 0: Forward acceleration
     // Index 1: Turn acceleration
@@ -270,6 +270,11 @@ public class WolrdManager_V2 : MonoBehaviour
         leftLine.SetWidth(0.02f,0.02f);
         rightLine.SetWidth(0.02f, 0.02f);
 
+        GameObject spikeLineGameObject = Instantiate(linePrefab) as GameObject;
+        spikeLineGameObject.transform.parent = creatureGameObject.transform;
+        LineRenderer spikeLine = spikeLineGameObject.GetComponent<LineRenderer>();
+        spikeLine.SetWidth(0.02f, 0.02f);
+
         LineRenderer[] lineSensor = new LineRenderer[4];
         for (int i = 0; i < lineSensor.Length; i++)
         {
@@ -282,7 +287,7 @@ public class WolrdManager_V2 : MonoBehaviour
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount);
         creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount,0,creatureGameObject.transform, leftLine, rightLine, lineSensor, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy, map_v2, this);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount,0,creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy, map_v2, this);
         creatureList.Add(creature);
         totalCreaturesCount++;
     }
@@ -313,11 +318,17 @@ public class WolrdManager_V2 : MonoBehaviour
             lineSensor[i].SetWidth(0.02f, 0.02f);
         }
 
+        GameObject spikeLineGameObject = Instantiate(linePrefab) as GameObject;
+        spikeLineGameObject.transform.parent = creatureGameObject.transform;
+        LineRenderer spikeLine = spikeLineGameObject.GetComponent<LineRenderer>();
+        spikeLine.SetWidth(0.02f, 0.02f);
+
+
         Brain_V2 brain = new Brain_V2(parent.GetBrain(), totalCreaturesCount);
         brain.Mutate();
         creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount, parent.GetGeneration()+1,creatureGameObject.transform, leftLine, rightLine, lineSensor, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, map_v2, this);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount, parent.GetGeneration()+1,creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, map_v2, this);
         creatureList.Add(creature);
         totalCreaturesCount++;
 

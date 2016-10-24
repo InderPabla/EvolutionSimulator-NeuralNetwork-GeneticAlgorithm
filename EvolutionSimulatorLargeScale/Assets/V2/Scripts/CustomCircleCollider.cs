@@ -33,13 +33,13 @@ public class CustomCircleCollider
         float unitAngle = rotation - 90f;
         Vector3 newUnit = new Vector3(Mathf.Cos(unitAngle * Mathf.Deg2Rad), Mathf.Sin(unitAngle * Mathf.Deg2Rad), 0f);
 
-        /*veloForward += accelForward * worldDeltaTime;
+        veloForward += accelForward * worldDeltaTime /2f;
         veloAngular += accelAngular * worldDeltaTime * 10f;
         veloForward *= (1f-0.04f);
-        veloAngular *= (1f-0.004f);*/
+        veloAngular *= (1f-0.004f);
 
-        veloForward = accelForward * worldDeltaTime * 10f;
-        veloAngular = accelAngular * worldDeltaTime * 2000f;
+        //veloForward = accelForward * worldDeltaTime * 10f;
+        //veloAngular = accelAngular * worldDeltaTime * 2000f;
 
         position += newUnit * veloForward /** worldDeltaTime * 10f*/;
         rotation += veloAngular /** worldDeltaTime *100f*/;
@@ -72,9 +72,9 @@ public class CustomCircleCollider
     }
 
     // Find the points of intersection.
-    public bool IsLineIntersectingWithCircle( Vector2 point1, Vector2 point2)
+    public bool IsLineIntersectingWithCircle( Vector2 p1, Vector2 p2)
     {
-        float dx, dy, A, B, C, det;
+        /*float dx, dy, A, B, C, det;
 
         dx = point2.x - point1.x;
         dy = point2.y - point1.y;
@@ -91,6 +91,27 @@ public class CustomCircleCollider
             return false;
         }
 
-        return true;
+        return true;*/
+
+        Vector2 p3 = new Vector2();
+        p3.x = position.x + radius;
+        p3.y = position.y + radius;
+
+        float m = ((p2.y - p1.y) / (p2.x - p1.x));
+        float Constant = (m * p1.x) - p1.y;
+
+        float b = -(2 * ((m * Constant) + p3.x + (m * p3.y)));
+        float a = (1 + (m * m));
+        float c = ((p3.x * p3.x) + (p3.y * p3.y) - (radius * radius) + (2 * Constant * p3.y) + (Constant * Constant));
+        float D = ((b * b) - (4 * a * c));
+
+        if (D > 0)
+        {
+            float distance = Vector2.Distance(p1, p2);
+            if (Vector2.Distance(p1,position)<= distance && Vector2.Distance(p2, position) <= distance)
+                return true;
+        }
+
+        return false;
     }
 }
