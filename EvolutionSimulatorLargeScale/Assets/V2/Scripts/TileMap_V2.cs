@@ -130,9 +130,13 @@ public class TileMap_V2
 
                     if (climate > 0)
                     {
-                        if (tiles[y, x].currentEnergy< tiles[y, x].maxEnergy)
+                        if (tiles[y, x].currentEnergy < tiles[y, x].maxEnergy)
                         {
                             tiles[y, x].currentEnergy += climate * worldDeltaTime * missedFramed/*playSpeed*/;
+                            if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
+                            {
+                                tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
+                            }
                         }
                     }
                     else if (climate < 0)
@@ -140,6 +144,11 @@ public class TileMap_V2
                         if (tiles[y, x].currentEnergy > 0f)
                         {
                             tiles[y, x].currentEnergy += climate * worldDeltaTime * missedFramed /*playSpeed*/;
+
+                            if (tiles[y, x].currentEnergy <0)
+                            {
+                                tiles[y, x].currentEnergy = 0f;
+                            }
                         }
                     }
 
@@ -192,7 +201,16 @@ public class TileMap_V2
             if (tiles[y, x].currentEnergy > 0)
             {
                 float missedFramed = (WolrdManager_V2.WORLD_CLOCK - tiles[y, x].lastUpdated)/worldDeltaTime;
-                tiles[y, x].currentEnergy += climate * worldDeltaTime * missedFramed/*playSpeed*/;
+
+                if (tiles[y, x].currentEnergy < tiles[y, x].maxEnergy)
+                {
+                    tiles[y, x].currentEnergy += climate * worldDeltaTime * missedFramed/*playSpeed*/;
+                    if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
+                    {
+                        tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
+                    }
+                }
+
 
                 energy = worldDeltaTime *10f;
 
@@ -317,6 +335,46 @@ public class TileMap_V2
 
         return creatureIndexList;
     }
+
+    public List<Creature_V2> ExistCreaturesBetweenTiles(int x1, int y1, int x2, int y2)
+    {
+        List<Creature_V2> creatureIndexList = new List<Creature_V2>();
+
+
+        if (IsValidLocation((int)x1, (int)y1) == true && IsValidLocation((int)x2, (int)y2) == true)
+        {
+            if (x1 > x2)
+            {
+                int temp = x2;
+                x2 = x1;
+                x1 = temp;
+            }
+
+            if (y1 > y2)
+            {
+                int temp = y2;
+                y2 = y1;
+                y1 = temp;
+            }
+
+            for (int i = y1; i < y2 + 1; i++)
+            {
+                for (int j = x1; j < x2 + 1; j++)
+                {
+                    if (IsValidLocation(j, i) == true)
+                    {
+                        List<Creature_V2> list = tiles[i, j].creatureListOnTile;
+
+                        creatureIndexList.AddRange(tiles[i, j].creatureListOnTile);
+                    }
+                }
+            }
+
+        }
+
+        return creatureIndexList;
+    }
+
 
 
     //search in only the given grid, (1 search)

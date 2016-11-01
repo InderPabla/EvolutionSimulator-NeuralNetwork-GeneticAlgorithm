@@ -33,13 +33,13 @@ public class CustomCircleCollider
         float unitAngle = rotation - 90f;
         Vector3 newUnit = new Vector3(Mathf.Cos(unitAngle * Mathf.Deg2Rad), Mathf.Sin(unitAngle * Mathf.Deg2Rad), 0f);
 
-        veloForward += accelForward * worldDeltaTime /2f;
+        /*veloForward += accelForward * worldDeltaTime /2f;
         veloAngular += accelAngular * worldDeltaTime * 10f;
         veloForward *= (1f-0.04f);
-        veloAngular *= (1f-0.004f);
-
-        //veloForward = accelForward * worldDeltaTime * 10f;
-        //veloAngular = accelAngular * worldDeltaTime * 2000f;
+        veloAngular *= (1f-0.004f);*/
+        
+        veloForward = accelForward * worldDeltaTime * 10f;
+        veloAngular = accelAngular * worldDeltaTime * 2000f;
 
         position += newUnit * veloForward /** worldDeltaTime * 10f*/;
         rotation += veloAngular /** worldDeltaTime *100f*/;

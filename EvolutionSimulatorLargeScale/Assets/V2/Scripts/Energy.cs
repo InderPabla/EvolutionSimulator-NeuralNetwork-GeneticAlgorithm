@@ -2,7 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Energy  {
+public class Energy
+{
 
     private bool giveBirth = false;
     private bool isAlive = true;
@@ -42,19 +43,19 @@ public class Energy  {
 
         deltaEnergy = 0f;
 
-        deltaEnergy -= (worldDeltaTime/5f) * (Mathf.Sqrt(Mathf.Max(currentEnergy/initialEnergy,1f)));  //natural energy loss (creature will die in 5 years)
-        deltaEnergy -= (Mathf.Abs(accelForward)*worldDeltaTime)/5f; //if creature keep moving at max speed it will die in 5 years
-        deltaEnergy -= (Mathf.Abs(accelAngular)*worldDeltaTime)/1f; //if creature keeps turing at max acceleration it will die in 2 years
-                                                                    // At worst if the creatures keep turning and moving at max rate it will die in 1.1 year
-         
+        deltaEnergy -= (worldDeltaTime / 5f) * (Mathf.Sqrt(Mathf.Max(currentEnergy / initialEnergy, 1f)));  //natural energy loss (creature will die in 5 years)
+        deltaEnergy -= (Mathf.Abs(accelForward) * worldDeltaTime) / 5f; //if creature keep moving at max speed it will die in 5 years
+        deltaEnergy -= (Mathf.Abs(accelAngular) * worldDeltaTime) / 1f; //if creature keeps turing at max acceleration it will die in 2 years
+                                                                        // At worst if the creatures keep turning and moving at max rate it will die in 1.1 year
+
         int tileType = map.GetTileType(x, y);
         if (tileType == Tile_V2.TILE_WATER)
         {
-            deltaEnergy -= worldDeltaTime *10f;
+            deltaEnergy -= worldDeltaTime * 10f;
         }
-        else if (eatFood > 0 && tileType!=Tile_V2.TILE_INFERT)
+        else if (eatFood > 0 && tileType != Tile_V2.TILE_INFERT)
         {
-            deltaEnergy += map.Eat(x,y)/2f;
+            deltaEnergy += map.Eat(x, y) / 2f;
 
             // 1 (cirmum) = 2*pi*r 
             // 1/(pi*2) = r = 0.15915494309189533576888376337251
@@ -65,9 +66,9 @@ public class Energy  {
             float mouthY = Mathf.Sin(mouthHue * Mathf.PI * 2);
             float groundX = Mathf.Cos(groundHue * Mathf.PI * 2);
             float groundY = Mathf.Sin(groundHue * Mathf.PI * 2);
-            float dist = Mathf.Pow(Mathf.Pow(mouthX - groundX, 2) + Mathf.Pow(mouthY - groundY, 2),0.5f);
+            float dist = Mathf.Pow(Mathf.Pow(mouthX - groundX, 2) + Mathf.Pow(mouthY - groundY, 2), 0.5f);
 
-            deltaEnergy -= (dist * worldDeltaTime *2f);
+            deltaEnergy -= (dist * worldDeltaTime * 2f);
 
             /*float damage = Mathf.Abs(mouthHue - groundHue);
             if(damage>0.1f)
@@ -75,7 +76,7 @@ public class Energy  {
             //deltaEnergy -= damage * worldDeltaTime*25f;
         }
 
-        if (/*fight > 0 &&*/ maturity > MIN_BIRTH_MATURITY && spikeCreature!=null)
+        if (/*fight > 0 && maturity > MIN_BIRTH_MATURITY &&*/ spikeCreature != null)
         {
             /*for (int i = 0; i < collisions.Count; i++)
             {
@@ -87,10 +88,24 @@ public class Energy  {
             }*/
 
             //float energySuck = Mathf.Sqrt(Mathf.Max(currentEnergy, 0f)) * 0.75f;
-            float energySuck = 0.25f;
-            deltaEnergy += (energySuck);
-            spikeCreature.RemoveEnergy(energySuck);
 
+
+
+            float enemyEnergy = spikeCreature.GetEnergy();
+            if (enemyEnergy > 0f)
+            {
+                float energySuck = 0.5f;
+
+                enemyEnergy -= energySuck;
+                if (enemyEnergy < 0f)
+                    energySuck = (energySuck + enemyEnergy)+0.005f;
+
+                deltaEnergy += (energySuck / 1.15f);
+                spikeCreature.RemoveEnergy(energySuck);
+
+                //deltaEnergy += (enemyEnergy / 1.5f);
+                //spikeCreature.RemoveEnergy(enemyEnergy*2f);
+            }
             //deltaEnergy -= worldDeltaTime * 2f;
         }
 
@@ -102,17 +117,17 @@ public class Energy  {
                 birthTimer = 0f;
                 giveBirth = true;
             }
-            
+
             birthTimer += worldDeltaTime;
         }
 
         currentEnergy += deltaEnergy;
-        if (currentEnergy <= 0f || life<=0)
-            isAlive= false;
+        if (currentEnergy <= 0f || life <= 0)
+            isAlive = false;
 
         maturity += worldDeltaTime;
-        
-        life -= ((worldDeltaTime/5f)/Mathf.Pow((Mathf.Max(currentEnergy,1f)/initialEnergy),0.1f));
+
+        life -= ((worldDeltaTime /5) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 0.5f));
     }
 
 

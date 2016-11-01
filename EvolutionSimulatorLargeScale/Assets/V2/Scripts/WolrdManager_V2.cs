@@ -11,6 +11,7 @@ public class WolrdManager_V2 : MonoBehaviour
     public GameObject linePrefab;
     public TextMesh tileDataText;
     public AncestryTreeMaker ancestryTree;
+    public GUINetDraw netDrawer;
     public bool runInBackground = false;
 
     private int sizeX = 100;
@@ -18,7 +19,7 @@ public class WolrdManager_V2 : MonoBehaviour
     private int minCreatureCount = 75;
     private int totalCreaturesCount = 0;
 
-    private int[] brainNetwork = new int[] {15, 25,25,25, 9};
+    private int[] brainNetwork = new int[] {15, 20, 9};
     // Output
     // Index 0: Forward acceleration
     // Index 1: Turn acceleration
@@ -234,6 +235,7 @@ public class WolrdManager_V2 : MonoBehaviour
         if (allSelectedCreatures.Count > 0)
         {
             ancestryTree.MakeTree(allSelectedCreatures);
+            netDrawer.SetBrain(ancestryTree.GetSelectedCreature().GetBrain());
         }
     }
 

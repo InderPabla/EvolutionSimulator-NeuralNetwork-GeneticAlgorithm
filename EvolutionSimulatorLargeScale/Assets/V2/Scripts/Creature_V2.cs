@@ -156,10 +156,40 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
 
         bool spikeTargetFound = false;
         Creature_V2 spikeCreature = null;
+        List<Creature_V2> creatureListAtTile = map.ExistCreaturesNearTile((int)base.position.x, (int)base.position.y);
+
 
         for (int i = 0; i < sensorPos.Length; i++)
         {
-            List<Creature_V2> creatureListAtTile1 = map.ExistCreatureAtTile((int)base.position.x, (int)base.position.y);
+            //List<Creature_V2> creatureListAtTile = map.ExistCreaturesBetweenTiles((int)base.position.x, (int)base.position.y, (int)sensorPos[i].x, (int)sensorPos[i].y);
+            sensorValue[i] = -1f;
+
+            if (creatureListAtTile != null)
+            {
+                for (int j = 0; j < creatureListAtTile.Count; j++)
+                {
+                    Creature_V2 creature = creatureListAtTile[j];
+                    if (!creature.Equals(this))
+                    {
+                        if (spikeTargetFound == false)
+                        {
+                            if (creature.IsLineIntersectingWithCircle(base.position, spikePos) == true)
+                            {
+                                spikeCreature = creature;
+                                spikeTargetFound = true;
+                            }
+                        }
+
+                        if (creature.IsLineIntersectingWithCircle(base.position, sensorPos[i]) == true)
+                        {
+                            sensorValue[i] = creature.bodyColor.h;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            /*List<Creature_V2> creatureListAtTile1 = map.ExistCreatureAtTile((int)base.position.x, (int)base.position.y);
             List<Creature_V2> creatureListAtTile2 = map.ExistCreatureAtTile((int)sensorPos[i].x, (int)sensorPos[i].y);
             sensorValue[i] = -1f;
 
@@ -212,16 +242,12 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
 
                     }
                 }
-            }
+            }*/
         }
 
 
 
-
-        //List<Creature_V2> creatureListAtBodyTile = map.ExistCreatureAtTile((int)position.x, (int)position.y);
-        //List<Creature_V2> creatureListAtBodyTile = map.ExistCreaturesNearTile((int)position.x, (int)position.y);
         List<Creature_V2> creatureListAtBodyTile = map.ExistCreaturesNearPrecisionTile(base.position.x, base.position.y, radius/**2f*/);
-        //List<Creature_V2> collisions = new List<Creature_V2>(); //check for body collision
         float hueAverage = -1f;
         float isCollision = -1;
 
@@ -235,7 +261,6 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
                 {
                     if (creature.CollisionCheckWithCircle(radius /** 2f*/, base.position) == true)
                     {
-                        //collisions.Add(creature);
                         hueAverage += creature.GetBodyHue();
                         isCollision++;
                     }
@@ -250,7 +275,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         }
 
 
-        float[] output = brain.feedforward(new float[] {sensorValue[0], sensorValue[1], sensorValue[2], sensorValue[3],
+        float[] output = brain.Feedforward(new float[] {sensorValue[0], sensorValue[1], sensorValue[2], sensorValue[3],
             isCollision,hueAverage, bodyTileColor.h, bodyTileColor.s, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s, energy.GetEnergy(), previousOutput[7], previousOutput[8] });
 
         float accelForward = output[0];
@@ -365,11 +390,11 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         float addRotation = 11.25f;
         for (int i = 0; i < sensorPos.Length; i++)
         {
-            sensorPos[i] = base.position + new Vector3(sensorSize * Mathf.Cos(startRotation* Mathf.Deg2Rad) *1.5f, sensorSize * Mathf.Sin(startRotation* Mathf.Deg2Rad) * 1.5f, 0f);
+            sensorPos[i] = base.position + new Vector3(sensorSize * Mathf.Cos(startRotation* Mathf.Deg2Rad) *2.5f, sensorSize * Mathf.Sin(startRotation* Mathf.Deg2Rad) * 2.5f, 0f);
             startRotation += addRotation;
         }
 
-        spikePos = base.position + new Vector3(sensorSize * Mathf.Cos(fixedRotation * Mathf.Deg2Rad) * spikeLength * 1.5f, sensorSize * Mathf.Sin(fixedRotation * Mathf.Deg2Rad) * spikeLength * 1.5f, 0f);
+        spikePos = base.position + new Vector3(sensorSize * Mathf.Cos(fixedRotation * Mathf.Deg2Rad) * spikeLength * 2.5f, sensorSize * Mathf.Sin(fixedRotation * Mathf.Deg2Rad) * spikeLength * 2.5f, 0f);
 
     }
 

@@ -150,4 +150,9 @@ public class AncestryTreeMaker : MonoBehaviour
 
     }
 
+    public Creature_V2 GetSelectedCreature()
+    {
+        return creature;
+    }
+
 }

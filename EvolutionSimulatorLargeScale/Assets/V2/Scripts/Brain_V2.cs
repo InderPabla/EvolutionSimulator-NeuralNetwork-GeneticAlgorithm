@@ -114,7 +114,7 @@ public class Brain_V2 : IEquatable<Brain_V2>
     }
 
     //neural network feedword by matrix operation
-    public float[] feedforward(float[] inputs)
+    public float[] Feedforward(float[] inputs)
     {
         //add inputs to the neurons matrix
         for (int i = 0; i < inputs.Length; i++)
@@ -138,7 +138,7 @@ public class Brain_V2 : IEquatable<Brain_V2>
                 }
 
                 //if (i < neurons.Length - 1)
-                    neurons[i][j] = tanh(value);
+                    neurons[i][j] = Tanh(value);
                 //else
                     //neurons[i][j] = value;
             }
@@ -148,8 +148,13 @@ public class Brain_V2 : IEquatable<Brain_V2>
         return neurons[layers.Length - 1]; //return output field
     }
 
+    public float[][] GetNeurons()
+    {
+        return neurons;
+    }
+
     //hyperbolic tangent activation
-    private float tanh(float value)
+    private float Tanh(float value)
     {
         return (float)Math.Tanh(value);
     }
@@ -298,5 +303,10 @@ public class Brain_V2 : IEquatable<Brain_V2>
             name = new string(nameChar);
 
         }
+    }
+
+    public float[][][] GetWeights()
+    {
+        return weights;
     }
 }
