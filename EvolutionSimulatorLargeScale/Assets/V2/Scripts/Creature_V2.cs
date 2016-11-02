@@ -395,22 +395,37 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         }
 
         spikePos = base.position + new Vector3(sensorSize * Mathf.Cos(fixedRotation * Mathf.Deg2Rad) * spikeLength * 2.5f, sensorSize * Mathf.Sin(fixedRotation * Mathf.Deg2Rad) * spikeLength * 2.5f, 0f);
-
+        
     }
 
     public void UpdateRender()
     {
         float[] output = brain.GetOutput();
+
         leftLine.SetPosition(0, position);
         leftLine.SetPosition(1, leftPos);
         rightLine.SetPosition(0, position);
         rightLine.SetPosition(1, rightPos);
 
-        for (int i = 0; i < sensorLine.Length; i++)
+        if (output[4] > 0)
+        {
+            leftLine.SetColors(Color.black, Color.black);
+            rightLine.SetColors(Color.black, Color.black);
+        }
+        else
+        {
+            leftLine.SetColors(Color.white, Color.white);
+            rightLine.SetColors(Color.white, Color.white);
+        }
+
+
+        /*for (int i = 0; i < sensorLine.Length; i++)
         {
             sensorLine[i].SetPosition(0, position);
             sensorLine[i].SetPosition(1, sensorPos[i]);
-        }
+        }*/
+
+
 
         /*for (int i = 0; i < sensorTrigger.Length; i++)
         {
@@ -425,16 +440,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         }*/
 
 
-        if (output[4] > 0)
-        {
-            leftLine.SetColors(Color.black,Color.black);
-            rightLine.SetColors(Color.black, Color.black);
-        }
-        else
-        {
-            leftLine.SetColors(Color.white,Color.white);
-            rightLine.SetColors(Color.white, Color.white);
-        }
+
 
         /*if (output[6] > 0)
         {

@@ -262,7 +262,7 @@ public class TileMap_V2
         }
         return 0f;
     }*/
-
+    
     public void RemoveCreatureFromTileList(int x, int y, Creature_V2 creature)
     {
         if (IsValidLocation(x, y) == true)
@@ -289,14 +289,12 @@ public class TileMap_V2
         List<Creature_V2> creatureIndexList = new List<Creature_V2>();
         if (IsValidLocation(x, y) == true)
         {
-            for (int i = y - 1; i < y + 1; i++)
+            for (int i = y - 1; i <= y + 1; i++)
             {
-                for (int j = x - 1; j < x + 1; j++)
+                for (int j = x - 1; j <= x + 1; j++)
                 {
                     if (IsValidLocation(j, i) == true)
                     {
-                        List<Creature_V2> list = tiles[i, j].creatureListOnTile;
-                        
                         creatureIndexList.AddRange(tiles[i, j].creatureListOnTile);
                     }
                 }

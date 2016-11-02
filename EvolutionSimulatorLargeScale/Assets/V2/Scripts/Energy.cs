@@ -68,7 +68,7 @@ public class Energy
             float groundY = Mathf.Sin(groundHue * Mathf.PI * 2);
             float dist = Mathf.Pow(Mathf.Pow(mouthX - groundX, 2) + Mathf.Pow(mouthY - groundY, 2), 0.5f);
 
-            deltaEnergy -= (dist * worldDeltaTime * 2f);
+            deltaEnergy -= (dist * worldDeltaTime * 0.75f); //2 is good
 
             /*float damage = Mathf.Abs(mouthHue - groundHue);
             if(damage>0.1f)

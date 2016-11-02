@@ -50,12 +50,10 @@ public class WolrdManager_V2 : MonoBehaviour
     private float worldDeltaTime = 0.001f;
     public static float WORLD_CLOCK = 0f;
     private bool textureLoaded = false;
-    
 
     private TileMap_V2 map_v2;
 
     private List<Creature_V2> creatureList;
-
 
     private bool rightMouseDown;
     private bool leftMouseDown;
@@ -71,8 +69,6 @@ public class WolrdManager_V2 : MonoBehaviour
 
         if (textureLoaded == true)
         {
-
-
             if (slowFactorCounter >= slowFactor)
             {
                 for (int itteration = 0; itteration < playSpeed; itteration++)
@@ -231,7 +227,8 @@ public class WolrdManager_V2 : MonoBehaviour
     {
         List<Creature_V2> allSelectedCreatures = map_v2.GetAllBodiesOnSelected();
         ancestryTree.ResetAllNodes();
-        
+        netDrawer.ResetBrain();
+
         if (allSelectedCreatures.Count > 0)
         {
             ancestryTree.MakeTree(allSelectedCreatures);

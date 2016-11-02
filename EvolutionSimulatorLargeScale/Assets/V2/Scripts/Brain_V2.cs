@@ -102,7 +102,7 @@ public class Brain_V2 : IEquatable<Brain_V2>
                 //set the weights randomly between 1 and -1
                 for (int k = 0; k < neuronsInPreviousLayer; k++)
                 {
-                    neuronWeights[k] = UnityEngine.Random.Range(-1f, 1f);
+                    neuronWeights[k] = UnityEngine.Random.Range(-0.5f, 0.5f);
                 }
 
                 layerWeightsList.Add(neuronWeights);
