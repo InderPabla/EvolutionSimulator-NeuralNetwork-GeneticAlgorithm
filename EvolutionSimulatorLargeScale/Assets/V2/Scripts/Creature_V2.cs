@@ -5,8 +5,8 @@ using System.Collections.Generic;
 
 public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, IComparable
 {
-    private Transform trans = null; //Transform of this object
-    private Transform textTrans = null;
+    public Transform trans = null; //Transform of this object
+    private TextMesh textMesh = null;
     private Transform fightTrans = null; 
     private LineRenderer leftLine = null;
     private LineRenderer rightLine = null;
@@ -71,7 +71,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         this.map = map;
         this.world = world;
         
-        this.textTrans = trans.GetChild(1).GetComponent<TextMesh>().transform;
+        this.textMesh = trans.GetChild(1).GetComponent<TextMesh>();
         this.fightTrans = trans.GetChild(3);
 
 
@@ -155,6 +155,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         }*/
 
         bool spikeTargetFound = false;
+        float spikeValue = -1;
         Creature_V2 spikeCreature = null;
         List<Creature_V2> creatureListAtTile = map.ExistCreaturesNearTile((int)base.position.x, (int)base.position.y);
 
@@ -176,6 +177,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
                             if (creature.IsLineIntersectingWithCircle(base.position, spikePos) == true)
                             {
                                 spikeCreature = creature;
+                                spikeValue = spikeCreature.bodyColor.h;
                                 spikeTargetFound = true;
                             }
                         }
@@ -247,9 +249,9 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
 
 
 
-        List<Creature_V2> creatureListAtBodyTile = map.ExistCreaturesNearPrecisionTile(base.position.x, base.position.y, radius/**2f*/);
+        List<Creature_V2> creatureListAtBodyTile = map.ExistCreaturesNearPrecisionTile(base.position.x, base.position.y, base.radius);
         float hueAverage = -1f;
-        float isCollision = -1;
+        float isCollision = -1f;
 
         //check for left sensor collision
         if (creatureListAtBodyTile != null)
@@ -259,9 +261,9 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
                 Creature_V2 creature = creatureListAtBodyTile[i];
                 if (!creature.Equals(this))
                 {
-                    if (creature.CollisionCheckWithCircle(radius /** 2f*/, base.position) == true)
+                    if (creature.CollisionCheckWithCircle(radius, base.position) == true)
                     {
-                        hueAverage += creature.GetBodyHue();
+                        hueAverage += creature.bodyColor.h;
                         isCollision++;
                     }
                 }
@@ -272,11 +274,17 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         {
             isCollision++;
             hueAverage = hueAverage / isCollision;
+            isCollision = 1f;
         }
 
 
-        float[] output = brain.Feedforward(new float[] {sensorValue[0], sensorValue[1], sensorValue[2], sensorValue[3],
-            isCollision,hueAverage, bodyTileColor.h, bodyTileColor.s, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s, energy.GetEnergy(), previousOutput[7], previousOutput[8] });
+        float[] output = brain.Feedforward(new float[] {sensorValue[0], sensorValue[1], sensorValue[2], sensorValue[3], spikeValue,
+            isCollision, hueAverage, bodyTileColor.h, bodyTileColor.s, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s,
+            base.radius, previousOutput[7], previousOutput[8] });
+
+        /*float[] output = brain.Feedforward(new float[] {sensorValue[0], sensorValue[1], sensorValue[2], sensorValue[3], spikeValue,
+            isCollision, hueAverage, bodyTileColor.s, leftTileColor.s, rightTileColor.s,
+            base.radius, previousOutput[7], previousOutput[8] });*/
 
         float accelForward = output[0];
         float accelAngular = output[1];
@@ -286,7 +294,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         if (output[6] >= 0)
             spikeLength = output[6];
         else
-            spikeLength = 0;
+            spikeLength = Mathf.Abs(output[6])/*0*/;
 
         if (bodyHue>= 0)
             this.bodyColor.h = bodyHue /*= new HSBColor(bodyHue,1f,1f)*/;
@@ -328,7 +336,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
     }
 
     // Find the points of intersection.
-    private int FindLineCircleIntersections(
+    /*private int FindLineCircleIntersections(
         float cx, float cy, float radius,
         Vector2 point1, Vector2 point2,
         out Vector2 intersection1, out Vector2 intersection2)
@@ -372,7 +380,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
                 new Vector2(point1.x + t * dx, point1.y + t * dy);
             return 2;
         }
-    }
+    }*/
 
     private void UpdateSensors()
     {
@@ -423,13 +431,13 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         {
             sensorLine[i].SetPosition(0, position);
             sensorLine[i].SetPosition(1, sensorPos[i]);
-        }*/
+        }
 
 
 
-        /*for (int i = 0; i < sensorTrigger.Length; i++)
+        for (int i = 0; i < sensorValue.Length; i++)
         {
-            if (sensorTrigger[i] == true)
+            if (sensorValue[i] >=0)
             {
                 sensorLine[i].SetColors(Color.red, Color.red);
             }
@@ -465,18 +473,22 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         trans.eulerAngles = new Vector3(0f, 0f, rotation);
         rotation = trans.eulerAngles.z; //resets it back to 0-360
 
-        textTrans.eulerAngles = new Vector3(0, 0, 0f);
-        textTrans.position = position + new Vector3(0f, 0.4f, 0f);
+        textMesh.transform.eulerAngles = new Vector3(0, 0, 0f);
+        textMesh.transform.position = position + new Vector3(0f, 0.4f, 0f);
 
         if (isNode == true)
         {
-            trans.localScale = new Vector3(radius * 12f, radius * 12f, 1f);
-            textTrans.localScale = new Vector3(4f,4f,4f);
+            //trans.localScale = new Vector3(radius * 12f, radius * 12f, 1f);
+            //textTrans.localScale = new Vector3(4f,4f,4f);
+
+            textMesh.transform.localScale = new Vector3(2f, 2f, 2f);
+            textMesh.color = Color.red;
         }
         else
         {
             trans.localScale = new Vector3(radius*2f, radius*2f, 1f);
-            textTrans.localScale = new Vector3(1f, 1f, 1f);
+            textMesh.transform.localScale = new Vector3(1f, 1f, 1f);
+            textMesh.color = Color.white;
         }
 
 
@@ -487,10 +499,10 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         return brain;
     }
 
-    public float GetBodyHue()
+    /*public float GetBodyHue()
     {
         return bodyColor.h;
-    }
+    }*/
 
     public void KillWithEnergy()
     {

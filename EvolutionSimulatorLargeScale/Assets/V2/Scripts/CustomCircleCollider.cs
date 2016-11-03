@@ -108,10 +108,15 @@ public class CustomCircleCollider
         if (D > 0)
         {
             float distance = Vector2.Distance(p1, p2);
-            if (Vector2.Distance(p1,position)<= distance && Vector2.Distance(p2, position) <= distance)
+            if (Vector2.Distance(p1,p3)<= distance && Vector2.Distance(p2, p3) <= distance)
                 return true;
         }
 
         return false;
+    }
+
+    public float GetRadius()
+    {
+        return radius;
     }
 }

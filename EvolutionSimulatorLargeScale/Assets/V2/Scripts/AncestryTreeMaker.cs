@@ -3,15 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-/*public class Tree
+public struct TreeData
 {
-    //public Creature_V2 parent;
-    //public List<Tree> children = new List<Tree>();
-
-    public int ID;
     public string name;
-    public List<Tree> children = new List<Tree>();
-}*/
+    public Color color;
+}
 
 public class AncestryTreeMaker : MonoBehaviour
 {
@@ -21,6 +17,8 @@ public class AncestryTreeMaker : MonoBehaviour
     private Creature_V2 creature;
     private List<GameObject> lines;
     private List<GameObject> names;
+
+    private List<TreeData> treeDataList;
 
     void Start()
     {
@@ -38,11 +36,19 @@ public class AncestryTreeMaker : MonoBehaviour
         GameObject name = Instantiate(namePrefab) as GameObject;
         names.Add(name);
         TextMesh textMesh = name.GetComponent<TextMesh>();
-        textMesh.text = this.creature.GetName() + "::" + creature.GetChildCount()+"::"+creature.radius + "::" + creature.GetEnergy(); 
+        textMesh.text = this.creature.GetName() + "::" + creature.GetChildCount()+"::"+creature.radius + "::" + creature.GetEnergy();
+        
+        
         textMesh.transform.position = new Vector3(0, globalY, 0);
         globalY -= 0.25f;
         textMesh.color = colors[0];
-        CreatureTraverseParentTree(this.creature, 0.5f,1);
+
+        TreeData treeData = new TreeData();
+        treeData.color = textMesh.color;
+        treeData.name = textMesh.text;
+        treeDataList.Add(treeData);
+
+        CreatureTraverseParentTree(this.creature, 0.5f,1,"  ");
 
         this.creature.SetIsNode(true);
 
@@ -77,8 +83,8 @@ public class AncestryTreeMaker : MonoBehaviour
 
 
     float globalY = -0.5f;
-    Color[] colors = new Color[] { new Color(0.75f,1f,0f), Color.cyan, Color.gray, Color.green, Color.magenta, Color.red, Color.white, Color.yellow};
-    public void CreatureTraverseParentTree(Creature_V2 parent, float x, int colorIndex)
+    Color[] colors = new Color[] { new Color(0.75f,1f,0f), Color.cyan, Color.green, Color.magenta, Color.red, Color.white, Color.yellow};
+    public void CreatureTraverseParentTree(Creature_V2 parent, float x, int colorIndex, string indent)
     {
         List<Creature_V2> children = parent.GetChildren();
 
@@ -90,10 +96,10 @@ public class AncestryTreeMaker : MonoBehaviour
                 GameObject name = Instantiate(namePrefab) as GameObject;
                 names.Add(name);
                 TextMesh textMesh = name.GetComponent<TextMesh>();
-                if (children[i].IsAlive())
-                    textMesh.text = children[i].GetName() + "::" + children[i].GetChildCount() + "::" + children[i].radius + "::" + children[i].GetEnergy();
+                if (children[i].IsAlive()) 
+                    textMesh.text = indent+children[i].GetName() + "::" + children[i].GetChildCount() + "::" + children[i].radius + "::" + children[i].GetEnergy();
                 else
-                    textMesh.text = children[i].GetName() + "::" + children[i].GetChildCount() + "::" + children[i].radius + "::" + children[i].GetEnergy() + "  X_X";
+                    textMesh.text = indent+children[i].GetName() + "::" + children[i].GetChildCount() + "::" + children[i].radius + "::" + children[i].GetEnergy() + "  X_X";
                 textMesh.transform.position = new Vector3(x, globalY,0);
                 globalY-=0.25f;
 
@@ -101,9 +107,21 @@ public class AncestryTreeMaker : MonoBehaviour
                     colorIndex = 0;
                 textMesh.color = colors[colorIndex];
 
-                CreatureTraverseParentTree(children[i],x+0.5f, colorIndex+1);
+                TreeData treeData = new TreeData();
+                treeData.color = textMesh.color;
+                treeData.name = textMesh.text;
+                treeDataList.Add(treeData);
+
+                CreatureTraverseParentTree(children[i],x+0.5f, colorIndex+1, indent+"  ");
+
+
             }
         }
+    }
+
+    public List<TreeData> GetTreeDataList()
+    {
+        return treeDataList;
     }
 
     public string CreatureTraverseRecursive(Creature_V2 parent)
@@ -147,6 +165,8 @@ public class AncestryTreeMaker : MonoBehaviour
         if(this.creature!=null)
             this.creature.SetIsNode(false);
         this.creature = null;
+
+        this.treeDataList = new List<TreeData>();
 
     }
 

@@ -51,7 +51,7 @@ public class Energy
         int tileType = map.GetTileType(x, y);
         if (tileType == Tile_V2.TILE_WATER)
         {
-            deltaEnergy -= worldDeltaTime * 10f;
+            deltaEnergy -= worldDeltaTime * 20f;
         }
         else if (eatFood > 0 && tileType != Tile_V2.TILE_INFERT)
         {
@@ -68,7 +68,7 @@ public class Energy
             float groundY = Mathf.Sin(groundHue * Mathf.PI * 2);
             float dist = Mathf.Pow(Mathf.Pow(mouthX - groundX, 2) + Mathf.Pow(mouthY - groundY, 2), 0.5f);
 
-            deltaEnergy -= (dist * worldDeltaTime * 0.75f); //2 is good
+            deltaEnergy -= (dist * worldDeltaTime * 0f); //2 is good
 
             /*float damage = Mathf.Abs(mouthHue - groundHue);
             if(damage>0.1f)
@@ -100,7 +100,7 @@ public class Energy
                 if (enemyEnergy < 0f)
                     energySuck = (energySuck + enemyEnergy)+0.005f;
 
-                deltaEnergy += (energySuck / 1.15f);
+                deltaEnergy += (energySuck / 1.25f);
                 spikeCreature.RemoveEnergy(energySuck);
 
                 //deltaEnergy += (enemyEnergy / 1.5f);
@@ -127,7 +127,9 @@ public class Energy
 
         maturity += worldDeltaTime;
 
+        //life -= ((worldDeltaTime /3) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 0.25f));
         life -= ((worldDeltaTime /5) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 0.5f));
+        //life -= ((worldDeltaTime / 5) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 1f));
     }
 
 

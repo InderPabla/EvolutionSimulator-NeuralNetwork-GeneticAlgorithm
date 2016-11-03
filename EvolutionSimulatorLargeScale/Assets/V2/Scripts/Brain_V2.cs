@@ -157,6 +157,13 @@ public class Brain_V2 : IEquatable<Brain_V2>
     private float Tanh(float value)
     {
         return (float)Math.Tanh(value);
+
+        /*if (value < -3)
+            return -1;
+        else if (value > 3)
+            return 1;
+        else
+            return value * (27f + value * value) / (27f + 9f * value * value);*/
     }
 
     //re return last float array in neurons matrix
@@ -232,7 +239,7 @@ public class Brain_V2 : IEquatable<Brain_V2>
                 {
                     float weight = weights[i][j][k];
 
-                    int randomNumber1 = UnityEngine.Random.Range(1, 501); //random number between 1 and 100
+                    int randomNumber1 = UnityEngine.Random.Range(1, 250); //random number between 1 and 100
                     if (randomNumber1 <= 1)
                     { //if 1
                       //flip sign of weight
@@ -241,7 +248,7 @@ public class Brain_V2 : IEquatable<Brain_V2>
                     else if (randomNumber1 <= 2)
                     { //if 2
                       //pick random weight between -1 and 1
-                        weight = UnityEngine.Random.Range(-1f, 1f);
+                        weight = UnityEngine.Random.Range(-0.5f, 0.5f);
                     }
                     else if (randomNumber1 <= 3)
                     { //if 3
@@ -255,6 +262,9 @@ public class Brain_V2 : IEquatable<Brain_V2>
                         float factor = UnityEngine.Random.Range(0f, 1f);
                         weight *= factor;
                     }
+
+                    if(weight>3f || weight <-3f)
+                        weight = UnityEngine.Random.Range(-0.5f, 0.5f);
 
                     weights[i][j][k] = weight;
                 }

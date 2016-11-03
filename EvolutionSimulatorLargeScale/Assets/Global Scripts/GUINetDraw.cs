@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GUINetDraw : MonoBehaviour {
     private Texture2D texture;
@@ -13,11 +14,17 @@ public class GUINetDraw : MonoBehaviour {
     private Color positiveLineColor;
     private Color neuronColor;
 
+    private float yOffset = 0f;
+    private float highest = 0f;
+    private List<TreeData> treeDataList;
+
+    public GUIText guiText;
+
     // Use this for initialization
     void Start () {
 
         texture = new Texture2D(/*(int)((float)Screen.width * 0.25f), Screen.height*/1,1);
-        this.screenWidth = (float)Screen.width * 0.25f;
+        this.screenWidth = (float)Screen.width * 0.4f;
         this.screenHeight = Screen.height;
 
         backgroundColor = Color.grey; backgroundColor.a = 1f;
@@ -45,7 +52,7 @@ public class GUINetDraw : MonoBehaviour {
     {
 
         GUI.color = backgroundColor;
-        GUI.DrawTexture(new Rect(0, 0, screenWidth, screenHeight), texture);
+        GUI.DrawTexture(new Rect(0, 0, screenWidth+10f, screenHeight), texture);
 
         
         DrawBrain();
@@ -57,9 +64,8 @@ public class GUINetDraw : MonoBehaviour {
     private void DrawBrain() {
         if (brain != null) {
             
-            float xMulti = (int)(screenWidth/2f);
-            float yMulti = (int)(screenHeight*0.05f);
-            Debug.Log(xMulti);
+            float xMulti = (int)(screenWidth/(neurons.Length-1));
+            float yMulti = (int)(screenHeight* 0.025f);
 
             for (int layerIndex = 0; layerIndex < connections.Length; layerIndex++)
             {
@@ -68,13 +74,13 @@ public class GUINetDraw : MonoBehaviour {
                 
                 for (int neuronOfLayerIndex = 0; neuronOfLayerIndex < connections[layerIndex].Length; neuronOfLayerIndex++)
                 {
-                    float nYOffsetCurrentLayer = (yOffset - (((float)connections[layerIndex].Length / 2f) * yMulti)) + 25;
-                    float nYOffsetPreviousLayer = (yOffset - (((float)connections[layerIndex][neuronOfLayerIndex].Length / 2f) * yMulti)) + 25;
+                    float nYOffsetCurrentLayer = (yOffset - (((float)connections[layerIndex].Length / 2f) * yMulti)) + yMulti;
+                    float nYOffsetPreviousLayer = (yOffset - (((float)connections[layerIndex][neuronOfLayerIndex].Length / 2f) * yMulti)) + yMulti;
 
                     for (int previousLayerNeuronIndex = 0; previousLayerNeuronIndex < connections[layerIndex][neuronOfLayerIndex].Length; previousLayerNeuronIndex++)
                     {
-                        Vector2 pointA = new Vector2(currentXPos, (neuronOfLayerIndex* yMulti) + nYOffsetCurrentLayer);
-                        Vector2 pointB = new Vector2(previousXPos, (previousLayerNeuronIndex * yMulti) + nYOffsetPreviousLayer);
+                        Vector2 pointA = new Vector2(currentXPos +12f, (neuronOfLayerIndex* yMulti) + nYOffsetCurrentLayer + 7f);
+                        Vector2 pointB = new Vector2(previousXPos + 12f, (previousLayerNeuronIndex * yMulti) + nYOffsetPreviousLayer + 7f);
                         
                         Color lineColor = positiveLineColor;
 
@@ -93,7 +99,7 @@ public class GUINetDraw : MonoBehaviour {
                 }
             }
 
-            GUI.color = Color.black;
+            /*GUI.color = Color.black;
             float xpos, ypos;
             
             for (int x = 0; x < neurons.Length; x++)
@@ -101,28 +107,58 @@ public class GUINetDraw : MonoBehaviour {
                 float numberOfNeuronsInLayer = neurons[x].Length;
                 xpos = (x * xMulti);
 
-                float nYOffset = (yOffset - (((float)numberOfNeuronsInLayer / 2f) * yMulti))+ 25;
+                
+                float nYOffset = (yOffset - (((float)numberOfNeuronsInLayer / 2f) * yMulti)) + yMulti;
                 for (int y = 0; y < numberOfNeuronsInLayer; y++)
                 {
-                    ypos = ((y * 25f) + nYOffset);
+                    ypos = ((y * (screenHeight* 0.025f)) + nYOffset);
 
                     GUI.DrawTexture(new Rect(xpos, ypos, 6f, 6f), texture);
                 }
+            }*/
+
+            
+            float xpos, ypos;
+            GUIStyle myStyle = new GUIStyle();
+            myStyle.fontStyle = FontStyle.Bold;
+
+            for (int x = 0; x < neurons.Length; x++)
+            {
+                float numberOfNeuronsInLayer = neurons[x].Length;
+                xpos = (x * xMulti);
+                float nYOffset = (yOffset - (((float)numberOfNeuronsInLayer / 2f) * yMulti)) + yMulti;
+
+                for (int y = 0; y < numberOfNeuronsInLayer; y++)
+                {
+                    ypos = (y * (yMulti)) + nYOffset;
+
+                    GUI.color = Color.white; 
+                    GUI.DrawTexture(new Rect(xpos, ypos, 30f, 14f), texture); 
+                    GUI.Label(new Rect(xpos, ypos, 100f, 20f), neurons[x][y].ToString("#.###") +"", myStyle);    
+                }
             }
+ 
+            //myStyle.normal.textColor = Color.red;
+            //GUI.Label(new Rect(10f, (yOffset*2f), 100f, 20f),"<color=green>dafdfdafdafadf</color>"    brain.GetName(), myStyle);
 
-            this.screenWidth = (float)Screen.width * 0.25f;
+            for (int i = 0; i < treeDataList.Count; i++) {
+                myStyle.normal.textColor = treeDataList[i].color;
+                GUI.Label(new Rect(10f, (yOffset * 2f) + (i*15f) + 15f, 100f, 20f), treeDataList[i].name, myStyle);
+            }
+  
+            //Draw label for energy, and creature ancestry tree
+
+            this.screenWidth = (float)Screen.width * 0.4f;
             this.screenHeight = Screen.height;
-
+            yOffset = ((float)highest / 2f) * (screenHeight * 0.025f);
         }
     }
 
-    float yOffset = 0f;
-
-    public void SetBrain(Brain_V2 brain)
+    public void SetBrain(Brain_V2 brain, List<TreeData> treeDataList)
     {
         this.brain = brain;
-
-        float highest = 0;
+        this.treeDataList = treeDataList;
+        //float highest = 0;
 
         for (int x = 0; x < brain.GetNeurons().Length; x++)
         {
@@ -134,18 +170,22 @@ public class GUINetDraw : MonoBehaviour {
             }
         }
 
-        highest = ((float)highest /2f)*25f;
-        yOffset = highest;
+        //highest = ((float)highest /2f)*25f;
+        yOffset = ((float)highest / 2f) * (screenHeight * 0.025f); 
 
         neurons = brain.GetNeurons();
         connections = brain.GetWeights();
+
+        //guiText.text = "<color=green>"+brain.GetName()+"</color>";
+        
     }
 
     public void ResetBrain()
     {
-        this.brain = null;
+        brain = null;
         neurons = null;
         connections = null;
+        treeDataList = new List<TreeData>();
     }
 }
 

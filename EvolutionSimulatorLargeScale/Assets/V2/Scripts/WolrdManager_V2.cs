@@ -19,7 +19,7 @@ public class WolrdManager_V2 : MonoBehaviour
     private int minCreatureCount = 75;
     private int totalCreaturesCount = 0;
 
-    private int[] brainNetwork = new int[] {15, 20, 9};
+    private int[] brainNetwork = new int[] {16, 16, 16, 9};
     // Output
     // Index 0: Forward acceleration
     // Index 1: Turn acceleration
@@ -232,7 +232,7 @@ public class WolrdManager_V2 : MonoBehaviour
         if (allSelectedCreatures.Count > 0)
         {
             ancestryTree.MakeTree(allSelectedCreatures);
-            netDrawer.SetBrain(ancestryTree.GetSelectedCreature().GetBrain());
+            netDrawer.SetBrain(ancestryTree.GetSelectedCreature().GetBrain(), ancestryTree.GetTreeDataList());
         }
     }
 
@@ -295,7 +295,7 @@ public class WolrdManager_V2 : MonoBehaviour
     {
         float energy = 1f;
         int[] randomTile = map_v2.RandomFloorTile();
-        Vector3 bodyPosition = parent.position;
+        Vector3 bodyPosition = parent.position - (parent.trans.up * 2f * parent.GetRadius());
         Vector3 leftPos = Vector3.zero;
         Vector3 rightPos = Vector3.zero;
         GameObject creatureGameObject = Instantiate(creaturePrefab, bodyPosition, creaturePrefab.transform.rotation) as GameObject;
