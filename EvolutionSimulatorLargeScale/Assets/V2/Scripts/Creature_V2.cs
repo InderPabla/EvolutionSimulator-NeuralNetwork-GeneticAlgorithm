@@ -294,7 +294,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         if (output[6] >= 0)
             spikeLength = output[6];
         else
-            spikeLength = Mathf.Abs(output[6])/*0*/;
+            spikeLength = /*Mathf.Abs(output[6])*/0;
 
         if (bodyHue>= 0)
             this.bodyColor.h = bodyHue /*= new HSBColor(bodyHue,1f,1f)*/;

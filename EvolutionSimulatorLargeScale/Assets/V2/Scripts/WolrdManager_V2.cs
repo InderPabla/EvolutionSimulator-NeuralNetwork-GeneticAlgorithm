@@ -19,7 +19,7 @@ public class WolrdManager_V2 : MonoBehaviour
     private int minCreatureCount = 75;
     private int totalCreaturesCount = 0;
 
-    private int[] brainNetwork = new int[] {16, 16, 16, 9};
+    private int[] brainNetwork = new int[] {16, 16, 16, 9};  //16, 16 ,16 ,9
     // Output
     // Index 0: Forward acceleration
     // Index 1: Turn acceleration

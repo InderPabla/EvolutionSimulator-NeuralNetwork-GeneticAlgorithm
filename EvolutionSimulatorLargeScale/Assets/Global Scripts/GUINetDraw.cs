@@ -18,8 +18,6 @@ public class GUINetDraw : MonoBehaviour {
     private float highest = 0f;
     private List<TreeData> treeDataList;
 
-    public GUIText guiText;
-
     // Use this for initialization
     void Start () {
 
@@ -50,12 +48,14 @@ public class GUINetDraw : MonoBehaviour {
 
     void OnGUI()
     {
+        this.screenWidth = (float)Screen.width * 0.4f;
+        this.screenHeight = Screen.height;
 
         GUI.color = backgroundColor;
         GUI.DrawTexture(new Rect(0, 0, screenWidth+10f, screenHeight), texture);
-
-        
         DrawBrain();
+        DrawButton();
+
         /*Vector2 pointA = new Vector2(Screen.width / 2, Screen.height / 2);
         Vector2 pointB = Event.current.mousePosition;
         Drawing.DrawLine(pointA, pointB, Color.red, 2f);*/
@@ -98,29 +98,11 @@ public class GUINetDraw : MonoBehaviour {
                     }
                 }
             }
-
-            /*GUI.color = Color.black;
-            float xpos, ypos;
-            
-            for (int x = 0; x < neurons.Length; x++)
-            {
-                float numberOfNeuronsInLayer = neurons[x].Length;
-                xpos = (x * xMulti);
-
-                
-                float nYOffset = (yOffset - (((float)numberOfNeuronsInLayer / 2f) * yMulti)) + yMulti;
-                for (int y = 0; y < numberOfNeuronsInLayer; y++)
-                {
-                    ypos = ((y * (screenHeight* 0.025f)) + nYOffset);
-
-                    GUI.DrawTexture(new Rect(xpos, ypos, 6f, 6f), texture);
-                }
-            }*/
-
-            
+ 
             float xpos, ypos;
             GUIStyle myStyle = new GUIStyle();
             myStyle.fontStyle = FontStyle.Bold;
+            myStyle.fontSize = (int)(screenWidth*0.025f);
 
             for (int x = 0; x < neurons.Length; x++)
             {
@@ -137,21 +119,30 @@ public class GUINetDraw : MonoBehaviour {
                     GUI.Label(new Rect(xpos, ypos, 100f, 20f), neurons[x][y].ToString("#.###") +"", myStyle);    
                 }
             }
- 
-            //myStyle.normal.textColor = Color.red;
-            //GUI.Label(new Rect(10f, (yOffset*2f), 100f, 20f),"<color=green>dafdfdafdafadf</color>"    brain.GetName(), myStyle);
 
             for (int i = 0; i < treeDataList.Count; i++) {
                 myStyle.normal.textColor = treeDataList[i].color;
                 GUI.Label(new Rect(10f, (yOffset * 2f) + (i*15f) + 15f, 100f, 20f), treeDataList[i].name, myStyle);
             }
-  
-            //Draw label for energy, and creature ancestry tree
-
-            this.screenWidth = (float)Screen.width * 0.4f;
-            this.screenHeight = Screen.height;
             yOffset = ((float)highest / 2f) * (screenHeight * 0.025f);
         }
+    }
+
+    public void DrawButton()
+    {
+        Rect button = new Rect(screenWidth - 100f, screenHeight-50, 100f,50f);
+        if (Input.GetMouseButton(0) && button.Contains(Event.current.mousePosition))
+        {
+            GUI.color = Color.red;
+            GUI.DrawTexture(button, texture);
+        }
+        else
+        {
+
+            GUI.color = Color.blue;
+            GUI.DrawTexture(button, texture);
+        }
+
     }
 
     public void SetBrain(Brain_V2 brain, List<TreeData> treeDataList)
@@ -175,8 +166,6 @@ public class GUINetDraw : MonoBehaviour {
 
         neurons = brain.GetNeurons();
         connections = brain.GetWeights();
-
-        //guiText.text = "<color=green>"+brain.GetName()+"</color>";
         
     }
 

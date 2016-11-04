@@ -12,9 +12,8 @@ public class Energy
     private float deltaEnergy;
     private float worldDeltaTime;
     private TileMap_V2 map;
-    private float minGiveBirthEnergy;
 
-    private const float MIN_BRITH_ENERGY = 2f;
+    private const float MIN_BRITH_ENERGY = 3f;
 
     private float maturity = 0f;
     private float birthTimer = 0f;
@@ -29,17 +28,16 @@ public class Energy
         this.currentEnergy = initialEnergy;
         this.map = map;
         this.worldDeltaTime = worldDeltaTime;
-        this.minGiveBirthEnergy = 2f;
     }
 
-    public void UpdateCreatureEnergy(int x, int y, float[] output, float groundHue, float mouthHue, /*List<Creature_V2> collisions*/Creature_V2 spikeCreature)
+    public void UpdateCreatureEnergy(int x, int y, float[] output, float groundHue, float mouthHue, Creature_V2 spikeCreature)
     {
         float accelForward = output[0];
         float accelAngular = output[1];
         //float mouthHue = Mathf.Abs(output[3]);
         float eatFood = output[4];
         float giveBrith = output[5];
-        //float fight = output[6];
+        float fight = output[6];
 
         deltaEnergy = 0f;
 
@@ -76,7 +74,7 @@ public class Energy
             //deltaEnergy -= damage * worldDeltaTime*25f;
         }
 
-        if (/*fight > 0 && maturity > MIN_BIRTH_MATURITY &&*/ spikeCreature != null)
+        if (fight > 0 && /*maturity > MIN_BIRTH_MATURITY &&*/ spikeCreature != null)
         {
             /*for (int i = 0; i < collisions.Count; i++)
             {
@@ -106,6 +104,8 @@ public class Energy
                 //deltaEnergy += (enemyEnergy / 1.5f);
                 //spikeCreature.RemoveEnergy(enemyEnergy*2f);
             }
+
+            //deltaEnergy -= (worldDeltaTime) / 1f;
             //deltaEnergy -= worldDeltaTime * 2f;
         }
 
@@ -113,7 +113,7 @@ public class Energy
         {
             if (birthTimer > MIN_BIRTH_TIME)
             {
-                deltaEnergy -= 1f;
+                deltaEnergy -= 2f;
                 birthTimer = 0f;
                 giveBirth = true;
             }
@@ -128,7 +128,7 @@ public class Energy
         maturity += worldDeltaTime;
 
         //life -= ((worldDeltaTime /3) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 0.25f));
-        life -= ((worldDeltaTime /5) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 0.5f));
+        life -= ((worldDeltaTime /5) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 0.4f));
         //life -= ((worldDeltaTime / 5) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 1f));
     }
 
