@@ -15,6 +15,7 @@ public class Brain_V2 : IEquatable<Brain_V2>
     private string name;
    
     private int ID;
+    private int calculations; 
 
     public Brain_V2(int[] lay, int ID)
     {
@@ -25,6 +26,10 @@ public class Brain_V2 : IEquatable<Brain_V2>
         for (int i = 0; i < layers.Length; i++)
         {
             this.layers[i] = lay[i];
+
+            if (i > 0) {
+                calculations += lay[i] * lay[i-1];
+            }
         }
 
         //init neurons and weights matrix
@@ -37,6 +42,7 @@ public class Brain_V2 : IEquatable<Brain_V2>
     public Brain_V2(Brain_V2 parentBrain, int ID)
     {
         this.ID = ID;
+        this.calculations = parentBrain.calculations;
 
         //deep copy layers array
         this.layers = new int[parentBrain.layers.Length];
@@ -130,17 +136,14 @@ public class Brain_V2 : IEquatable<Brain_V2>
         {
             for (int j = 0; j < neurons[i].Length; j++) //nerons
             {
-                float value = BIAS;
+                float value = BIAS ;
 
                 for (int k = 0; k < neurons[i - 1].Length; k++)
                 {
                     value += weights[weightLayerIndex][j][k] * neurons[i - 1][k];
                 }
 
-                //if (i < neurons.Length - 1)
-                    neurons[i][j] = Tanh(value);
-                //else
-                    //neurons[i][j] = value;
+                neurons[i][j] = Tanh(value);
             }
             weightLayerIndex++;
         }
@@ -239,7 +242,7 @@ public class Brain_V2 : IEquatable<Brain_V2>
                 {
                     float weight = weights[i][j][k];
 
-                    int randomNumber1 = UnityEngine.Random.Range(1, 250); //random number between 1 and 100
+                    int randomNumber1 = UnityEngine.Random.Range(1, /*250*/1000); //random number between 1 and 100
                     if (randomNumber1 <= 1)
                     { //if 1
                       //flip sign of weight
@@ -263,8 +266,8 @@ public class Brain_V2 : IEquatable<Brain_V2>
                         weight *= factor;
                     }
 
-                    if(weight>3f || weight <-3f)
-                        weight = UnityEngine.Random.Range(-0.5f, 0.5f);
+                    //if(weight>3f || weight <-3f)
+                        //weight = UnityEngine.Random.Range(-0.5f, 0.5f);
 
                     weights[i][j][k] = weight;
                 }
@@ -318,5 +321,10 @@ public class Brain_V2 : IEquatable<Brain_V2>
     public float[][][] GetWeights()
     {
         return weights;
+    }
+
+    public int GetCalculations()
+    {
+        return calculations;
     }
 }

@@ -204,7 +204,7 @@ public class TileMap_V2
 
                 if (tiles[y, x].currentEnergy < tiles[y, x].maxEnergy)
                 {
-                    tiles[y, x].currentEnergy += climate * worldDeltaTime * missedFramed/*playSpeed*/;
+                    tiles[y, x].currentEnergy += climate * worldDeltaTime * missedFramed;
                     if (tiles[y, x].currentEnergy > tiles[y, x].maxEnergy)
                     {
                         tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
@@ -212,7 +212,7 @@ public class TileMap_V2
                 }
 
 
-                energy = worldDeltaTime *10f;
+                energy = worldDeltaTime *5f;
 
                 tiles[y, x].currentEnergy -= energy;
 

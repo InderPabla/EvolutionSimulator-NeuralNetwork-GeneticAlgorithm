@@ -71,49 +71,119 @@ public class CustomCircleCollider
         return false;
     }
 
-    // Find the points of intersection.
-    public bool IsLineIntersectingWithCircle( Vector2 p1, Vector2 p2)
-    {
-        /*float dx, dy, A, B, C, det;
 
+    public float IsLineIntersectingWithCircle(Vector2 point1, Vector2 point2)
+    {
+        float dx, dy, A, B, C, det, t, indx, indy, cx, cy, inDistance, distance;
+        Vector2 intersection1, intersection2;
+
+        cx = position.x;
+        cy = position.y;
         dx = point2.x - point1.x;
         dy = point2.y - point1.y;
 
         A = dx * dx + dy * dy;
-        B = 2 * (dx * (point1.x - position.x) + dy * (point1.y - position.y));
-        C = (point1.x - position.x) * (point1.x - position.x) +
-            (point1.y - position.y) * (point1.y - position.y) -
+        B = 2 * (dx * (point1.x - cx) + dy * (point1.y - cy));
+        C = (point1.x - cx) * (point1.x - cx) +
+            (point1.y - cy) * (point1.y - cy) -
             radius * radius;
 
         det = B * B - 4 * A * C;
         if ((A <= 0.0000001) || (det < 0))
         {
-            return false;
+            // No real solutions.
+            intersection1 = new Vector2(float.NaN, float.NaN);
+            intersection2 = new Vector2(float.NaN, float.NaN);
+
+            return -1f;
         }
-
-        return true;*/
-
-        Vector2 p3 = new Vector2();
-        p3.x = position.x + radius;
-        p3.y = position.y + radius;
-
-        float m = ((p2.y - p1.y) / (p2.x - p1.x));
-        float Constant = (m * p1.x) - p1.y;
-
-        float b = -(2 * ((m * Constant) + p3.x + (m * p3.y)));
-        float a = (1 + (m * m));
-        float c = ((p3.x * p3.x) + (p3.y * p3.y) - (radius * radius) + (2 * Constant * p3.y) + (Constant * Constant));
-        float D = ((b * b) - (4 * a * c));
-
-        if (D > 0)
+        else if (det == 0)
         {
-            float distance = Vector2.Distance(p1, p2);
-            if (Vector2.Distance(p1,p3)<= distance && Vector2.Distance(p2, p3) <= distance)
-                return true;
-        }
+            // One solution.
+            t = -B / (2 * A);
+            intersection1 =
+                new Vector2(point1.x + t * dx, point1.y + t * dy);
+            intersection2 = new Vector2(float.NaN, float.NaN);
 
+            indx = intersection1.x - point1.x;
+            indy = intersection1.y - point1.y;
+            inDistance = Vector2.Distance(intersection1, point1);
+            distance = Vector2.Distance(point2, point1);
+
+            if (Mathf.Sign(dx) == Mathf.Sign(indx) && Mathf.Sign(dy) == Mathf.Sign(indy) && inDistance<=distance)
+                return inDistance;
+            else
+                return -1f;
+        }
+        else
+        {
+            // Two solutions.
+            t = (float)((-B + Math.Sqrt(det)) / (2 * A));
+            intersection1 =
+                new Vector2(point1.x + t * dx, point1.y + t * dy);
+            t = (float)((-B - Math.Sqrt(det)) / (2 * A));
+            intersection2 =
+                new Vector2(point1.x + t * dx, point1.y + t * dy);
+
+            indx = intersection1.x - point1.x;
+            indy = intersection1.y - point1.y;
+            inDistance = Vector2.Distance(intersection1, point1);
+            distance = Vector2.Distance(point2, point1);
+
+            if (Mathf.Sign(dx) == Mathf.Sign(indx) && Mathf.Sign(dy) == Mathf.Sign(indy) && inDistance <= distance)
+                return inDistance;
+            else
+                return -1f;
+        }
+    }
+
+
+
+
+
+    // Find the points of intersection.
+    //public bool IsLineIntersectingWithCircle( Vector2 p1, Vector2 p2)
+    //{
+    /*float dx, dy, A, B, C, det;
+
+    dx = point2.x - point1.x;
+    dy = point2.y - point1.y;
+
+    A = dx * dx + dy * dy;
+    B = 2 * (dx * (point1.x - position.x) + dy * (point1.y - position.y));
+    C = (point1.x - position.x) * (point1.x - position.x) +
+        (point1.y - position.y) * (point1.y - position.y) -
+        radius * radius;
+
+    det = B * B - 4 * A * C;
+    if ((A <= 0.0000001) || (det < 0))
+    {
         return false;
     }
+
+    return true;*/
+
+    /*Vector2 p3 = new Vector2();
+    p3.x = position.x + radius;
+    p3.y = position.y + radius;
+
+    float m = ((p2.y - p1.y) / (p2.x - p1.x));
+    float Constant = (m * p1.x) - p1.y;
+
+    float b = -(2 * ((m * Constant) + p3.x + (m * p3.y)));
+    float a = (1 + (m * m));
+    float c = ((p3.x * p3.x) + (p3.y * p3.y) - (radius * radius) + (2 * Constant * p3.y) + (Constant * Constant));
+    float D = ((b * b) - (4 * a * c));
+
+    if (D > 0)
+    {
+
+        float distance = Vector2.Distance(p1, p2);
+        if (Vector2.Distance(p1,p3)<= distance && Vector2.Distance(p2, p3) <= distance)
+            return true;
+    }
+    return false;
+}*/
 
     public float GetRadius()
     {

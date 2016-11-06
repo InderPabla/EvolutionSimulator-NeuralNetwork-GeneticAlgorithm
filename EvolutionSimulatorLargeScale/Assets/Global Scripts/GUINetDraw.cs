@@ -3,8 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class GUINetDraw : MonoBehaviour {
+    public int createButtonState = 0;
+    public int fastButtonState = 0;
+    public int slowButtonState = 0;
+    public int visionButtonState = 0;
+    public int saveButtonState = 0;
+    public int drawNetButtonState = 0;
+    public bool drawNetState = false;
+
     private Texture2D texture;
     private Brain_V2 brain;
+    private Creature_V2 creature;
     private float screenWidth, screenHeight;
     private float[][] neurons;
     private float[][][] connections;
@@ -18,6 +27,11 @@ public class GUINetDraw : MonoBehaviour {
     private float highest = 0f;
     private List<TreeData> treeDataList;
 
+    private int brainCalculations = 0;
+    private int totalNumberOfCreatures = 0;
+    private int creatureCount = 0;
+    private float playSpeed = 1;
+
     // Use this for initialization
     void Start () {
 
@@ -29,21 +43,6 @@ public class GUINetDraw : MonoBehaviour {
         negativeLineColor = Color.red; negativeLineColor.a = 1f;
         positiveLineColor = Color.green; positiveLineColor.a = 1f;
         neuronColor = Color.magenta; neuronColor.a = 1f;
-
-        /*for (int y = 0; y < texture.height; y++)
-        {
-            for (int x = 0; x < texture.width; x++)
-            {
-                texture.SetPixel(x, y, Color.grey);
-            }
-        }
-        
-        texture.Apply();*/
-    }
-
-    // Update is called once per frame
-    void Update () {
-        
     }
 
     void OnGUI()
@@ -51,122 +50,266 @@ public class GUINetDraw : MonoBehaviour {
         this.screenWidth = (float)Screen.width * 0.4f;
         this.screenHeight = Screen.height;
 
+        if (drawNetButtonState == 2)
+        {
+            drawNetState = !drawNetState;
+        }
+
         GUI.color = backgroundColor;
         GUI.DrawTexture(new Rect(0, 0, screenWidth+10f, screenHeight), texture);
         DrawBrain();
-        DrawButton();
-
-        /*Vector2 pointA = new Vector2(Screen.width / 2, Screen.height / 2);
-        Vector2 pointB = Event.current.mousePosition;
-        Drawing.DrawLine(pointA, pointB, Color.red, 2f);*/
+        DrawUI();
     }
 
-    private void DrawBrain() {
-        if (brain != null) {
-            
-            float xMulti = (int)(screenWidth/(neurons.Length-1));
-            float yMulti = (int)(screenHeight* 0.025f);
+    private void DrawBrain()
+    {
+        if (brain != null)
+        {
 
-            for (int layerIndex = 0; layerIndex < connections.Length; layerIndex++)
+            float xOff = (int)(screenWidth / (neurons.Length - 1));
+            float yOff = (int)(screenHeight * 0.025f);
+            float rectWidth = (int)(screenWidth * 0.075f);
+            float rectHeight = (int)(rectWidth / 1.5f);
+
+            if (drawNetState == true)
             {
-                float currentXPos = ((layerIndex +1) * xMulti);
-                float previousXPos = ((layerIndex) * xMulti);
-                
-                for (int neuronOfLayerIndex = 0; neuronOfLayerIndex < connections[layerIndex].Length; neuronOfLayerIndex++)
+                for (int layerIndex = 0; layerIndex < connections.Length; layerIndex++)
                 {
-                    float nYOffsetCurrentLayer = (yOffset - (((float)connections[layerIndex].Length / 2f) * yMulti)) + yMulti;
-                    float nYOffsetPreviousLayer = (yOffset - (((float)connections[layerIndex][neuronOfLayerIndex].Length / 2f) * yMulti)) + yMulti;
 
-                    for (int previousLayerNeuronIndex = 0; previousLayerNeuronIndex < connections[layerIndex][neuronOfLayerIndex].Length; previousLayerNeuronIndex++)
+                    float currentLayerYRatio = (screenHeight / 2f) / (float)connections[layerIndex].Length;
+                    float currentXPos = (int)((layerIndex + 1) * xOff);
+                    float previousXPos = (int)((layerIndex) * xOff);
+
+                    for (int neuronOfLayerIndex = 0; neuronOfLayerIndex < connections[layerIndex].Length; neuronOfLayerIndex++)
                     {
-                        Vector2 pointA = new Vector2(currentXPos +12f, (neuronOfLayerIndex* yMulti) + nYOffsetCurrentLayer + 7f);
-                        Vector2 pointB = new Vector2(previousXPos + 12f, (previousLayerNeuronIndex * yMulti) + nYOffsetPreviousLayer + 7f);
-                        
-                        Color lineColor = positiveLineColor;
 
-                        if (connections[layerIndex][neuronOfLayerIndex][previousLayerNeuronIndex] <= 0f)
+                        float previousLayerYRatio = (screenHeight / 2f) / (float)connections[layerIndex][neuronOfLayerIndex].Length;
+
+
+                        for (int previousLayerNeuronIndex = 0; previousLayerNeuronIndex < connections[layerIndex][neuronOfLayerIndex].Length; previousLayerNeuronIndex++)
                         {
-                            lineColor = negativeLineColor;
+                            Vector2 pointA = new Vector2(currentXPos + (int)(rectWidth / 2f), currentLayerYRatio * neuronOfLayerIndex + yOff + (int)(rectHeight / 2f));
+                            Vector2 pointB = new Vector2(previousXPos + (int)(rectWidth / 2f), previousLayerYRatio * previousLayerNeuronIndex + yOff + (int)(rectHeight / 2f));
+
+                            Color lineColor = positiveLineColor;
+
+                            if (connections[layerIndex][neuronOfLayerIndex][previousLayerNeuronIndex] <= 0f)
+                            {
+                                lineColor = negativeLineColor;
+                            }
+
+                            Drawing.DrawLine(pointA, pointB, lineColor, 1f, texture);
                         }
-
-                        /*float width = Mathf.Abs(connections[layerIndex][neuronOfLayerIndex][previousLayerNeuronIndex]);
-                        if (width > 1f)
-                            width = 1f;
-
-                        Color lineColor = new Color(1f-width,1f-width,1f-width,1f);*/
-                        Drawing.DrawLine(pointA, pointB, lineColor, 1f,texture);
                     }
                 }
             }
- 
-            float xpos, ypos;
+
             GUIStyle myStyle = new GUIStyle();
             myStyle.fontStyle = FontStyle.Bold;
-            myStyle.fontSize = (int)(screenWidth*0.025f);
+            myStyle.fontSize = (int)(screenWidth * 0.025f);
 
             for (int x = 0; x < neurons.Length; x++)
             {
                 float numberOfNeuronsInLayer = neurons[x].Length;
-                xpos = (x * xMulti);
-                float nYOffset = (yOffset - (((float)numberOfNeuronsInLayer / 2f) * yMulti)) + yMulti;
+                float yRatio = (screenHeight / 2f) / numberOfNeuronsInLayer;
 
+                float xpos = x * xOff;
+                float ypos = 0f;
                 for (int y = 0; y < numberOfNeuronsInLayer; y++)
                 {
-                    ypos = (y * (yMulti)) + nYOffset;
-
-                    GUI.color = Color.white; 
-                    GUI.DrawTexture(new Rect(xpos, ypos, 30f, 14f), texture); 
-                    GUI.Label(new Rect(xpos, ypos, 100f, 20f), neurons[x][y].ToString("#.###") +"", myStyle);    
+                    ypos = y*yRatio + yOff;
+                    GUI.color = Color.white;
+                    GUI.DrawTexture(new Rect(xpos , ypos, rectWidth, rectHeight), texture);
+                    GUI.Label(new Rect((int)(xpos + (rectWidth / 7f)), (int)(ypos + (rectHeight / 4f)), rectWidth, rectHeight), neurons[x][y].ToString("0.000") + "", myStyle);
                 }
             }
 
-            for (int i = 0; i < treeDataList.Count; i++) {
+            for (int i = 0; i < treeDataList.Count; i++)
+            {
                 myStyle.normal.textColor = treeDataList[i].color;
-                GUI.Label(new Rect(10f, (yOffset * 2f) + (i*15f) + 15f, 100f, 20f), treeDataList[i].name, myStyle);
+
+                if (i == 0)
+                {
+                    string cretureInformation = treeDataList[i].name +
+                                                ", Child Count: " + creature.GetChildCount() +
+                                                ", Time Lived: " + creature.GetTimeLived().ToString("0.000") +
+                                                ", Life: " + creature.GetLife().ToString("0.000") +
+                                                ", Energy: " +creature.GetEnergy().ToString("0.000") +
+                                                ", Delta: "+ creature.GetDeltaEnergy();
+
+                    GUI.Label(new Rect(1f, screenHeight / 1.9f + rectHeight + i * ( yOff / 1.5f), rectWidth, rectHeight), cretureInformation, myStyle);
+                }
+                else
+                {
+                    GUI.Label(new Rect(1f, screenHeight / 1.9f + rectHeight + i * (yOff / 1.5f), rectWidth, rectHeight), treeDataList[i].name, myStyle);
+                }
             }
-            yOffset = ((float)highest / 2f) * (screenHeight * 0.025f);
         }
     }
 
-    public void DrawButton()
+    public void DrawUI()
     {
-        Rect button = new Rect(screenWidth - 100f, screenHeight-50, 100f,50f);
-        if (Input.GetMouseButton(0) && button.Contains(Event.current.mousePosition))
+        GUIStyle myStyle = new GUIStyle();
+        myStyle.fontStyle = FontStyle.Bold;
+        myStyle.fontSize = (int)(screenWidth * 0.05f);
+
+        int buttonWidth = (int)(screenWidth * 0.2f);
+        int buttonHeight = (int)(buttonWidth / 1.8f);
+
+        //create button
+        Rect createButton = new Rect(screenWidth - buttonWidth, screenHeight-buttonHeight, buttonWidth,  buttonHeight);
+
+        if (Input.GetMouseButton(0) && createButton.Contains(Event.current.mousePosition))
         {
             GUI.color = Color.red;
-            GUI.DrawTexture(button, texture);
+            GUI.DrawTexture(createButton, texture);
+            createButtonState++;
         }
         else
         {
 
             GUI.color = Color.blue;
-            GUI.DrawTexture(button, texture);
+            GUI.DrawTexture(createButton, texture);
+            createButtonState = 0;
         }
+
+        GUI.color = Color.white;
+        myStyle.normal.textColor = Color.white;
+        GUI.Label(createButton, "Create",myStyle);
+
+        //play speed buttons
+        GUI.color = Color.blue;
+
+        Rect fastSpeedButton = new Rect(screenWidth - buttonWidth, screenHeight - buttonHeight*2f - 3, buttonWidth/2.5f, buttonHeight);
+        Rect slowSpeedButton = new Rect(screenWidth - buttonWidth + buttonWidth/2.5f +(buttonWidth-(buttonWidth/2.5f * 2f)), screenHeight - buttonHeight*2f - 3, buttonWidth/2.5f, buttonHeight);
+
+        if (Input.GetMouseButton(0) && fastSpeedButton.Contains(Event.current.mousePosition))
+        {
+            GUI.color = Color.red;
+            GUI.DrawTexture(fastSpeedButton, texture);
+            fastButtonState++;
+        }
+        else
+        {
+
+            GUI.color = Color.blue;
+            GUI.DrawTexture(fastSpeedButton, texture);
+            fastButtonState = 0;
+        }
+
+        if (Input.GetMouseButton(0) && slowSpeedButton.Contains(Event.current.mousePosition))
+        {
+            GUI.color = Color.red;
+            GUI.DrawTexture(slowSpeedButton, texture);
+            slowButtonState++;
+        }
+        else
+        {
+
+            GUI.color = Color.blue;
+            GUI.DrawTexture(slowSpeedButton, texture);
+            slowButtonState = 0;
+        }
+
+        //vision button
+        Rect visionButton = new Rect(screenWidth - buttonWidth * 2 - 3, screenHeight - buttonHeight*2 - 3, buttonWidth, buttonHeight);
+        if (Input.GetMouseButton(0) && visionButton.Contains(Event.current.mousePosition))
+        {
+            GUI.color = Color.red;
+            GUI.DrawTexture(visionButton, texture);
+            visionButtonState++;
+        }
+        else
+        {
+
+            GUI.color = Color.blue;
+            GUI.DrawTexture(visionButton, texture);
+            visionButtonState = 0;
+        }
+
+        GUI.color = Color.white;
+        myStyle.normal.textColor = Color.white;
+        GUI.Label(visionButton, "Vision", myStyle);
+
+        //draw net button
+        Rect drawNetButton = new Rect(screenWidth - buttonWidth * 2 - 3, screenHeight - buttonHeight, buttonWidth, buttonHeight);
+        if (Input.GetMouseButton(0) && drawNetButton.Contains(Event.current.mousePosition))
+        {
+            GUI.color = Color.red;
+            GUI.DrawTexture(drawNetButton, texture);
+            drawNetButtonState++;
+        }
+        else
+        {
+
+            GUI.color = Color.blue;
+            GUI.DrawTexture(drawNetButton, texture);
+            drawNetButtonState = 0;
+        }
+
+        GUI.color = Color.white;
+        myStyle.normal.textColor = Color.white;
+        GUI.Label(drawNetButton, "Draw\nNet", myStyle);
+
+        //save button
+        Rect saveButton = new Rect(screenWidth - buttonWidth * 3 - 6, screenHeight - buttonHeight, buttonWidth, buttonHeight);
+        if (Input.GetMouseButton(0) && saveButton.Contains(Event.current.mousePosition))
+        {
+            GUI.color = Color.red;
+            GUI.DrawTexture(saveButton, texture);
+            saveButtonState++;
+        }
+        else
+        {
+
+            GUI.color = Color.blue;
+            GUI.DrawTexture(saveButton, texture);
+            saveButtonState = 0;
+        }
+
+        GUI.color = Color.white;
+        myStyle.normal.textColor = Color.white;
+        GUI.Label(saveButton, "Save", myStyle);
+
+
+        //UI numbers
+        GUI.color = Color.white;
+        myStyle.normal.textColor = Color.white;
+        GUI.Label(fastSpeedButton, ">>", myStyle);
+        GUI.Label(slowSpeedButton, "<<", myStyle);
+
+        myStyle.fontSize = (int)(screenWidth * 0.03f);
+
+        //draw play speed
+        Rect playSpeedNumber = new Rect(fastSpeedButton.x - (int)(screenWidth * 0.04f), fastSpeedButton.y-buttonHeight/2f, buttonWidth,buttonHeight);
+        GUI.Label(playSpeedNumber, "Speed: "+playSpeed.ToString("0.0"), myStyle);
+
+        //draw total number of creatures 
+        Rect totalNumber = new Rect(fastSpeedButton.x - (int)(screenWidth * 0.04f), fastSpeedButton.y - buttonHeight / 2f - (int)(screenWidth * 0.04f), buttonWidth, buttonHeight);
+        GUI.Label(totalNumber, "Total: " + totalNumberOfCreatures, myStyle);
+
+        //draw total number of creatures 
+        Rect countNumber = new Rect(fastSpeedButton.x - (int)(screenWidth * 0.04f), fastSpeedButton.y - buttonHeight / 2f - (int)(screenWidth * 0.04f*2f), buttonWidth, buttonHeight);
+        GUI.Label(countNumber, "Current: " + creatureCount, myStyle);
+
+        //draw total number of creatures 
+        Rect calculationsNumber = new Rect(fastSpeedButton.x - (int)(screenWidth * 0.04f), fastSpeedButton.y - buttonHeight / 2f - (int)(screenWidth * 0.04f * 3f), buttonWidth, buttonHeight);
+        GUI.Label(calculationsNumber, "Calculations: " + creatureCount*brainCalculations, myStyle);
+
+        //World time
+        Rect worldNumber = new Rect(fastSpeedButton.x - (int)(screenWidth * 0.04f), fastSpeedButton.y - buttonHeight / 2f - (int)(screenWidth * 0.04f * 4f), buttonWidth, buttonHeight);
+        GUI.Label(worldNumber, "World-Time: " + WolrdManager_V2.WORLD_CLOCK.ToString("0.000"), myStyle);
 
     }
 
-    public void SetBrain(Brain_V2 brain, List<TreeData> treeDataList)
+    public void SetBrain(Brain_V2 brain, List<TreeData> treeDataList, Creature_V2 creature)
     {
         this.brain = brain;
         this.treeDataList = treeDataList;
-        //float highest = 0;
-
-        for (int x = 0; x < brain.GetNeurons().Length; x++)
-        {
-            int numberOfNeuronsInLayer = brain.GetNeurons()[x].Length;
-
-            if (numberOfNeuronsInLayer > highest)
-            {
-                highest = numberOfNeuronsInLayer;
-            }
-        }
-
-        //highest = ((float)highest /2f)*25f;
-        yOffset = ((float)highest / 2f) * (screenHeight * 0.025f); 
+        this.creature = creature;
 
         neurons = brain.GetNeurons();
         connections = brain.GetWeights();
-        
     }
 
     public void ResetBrain()
@@ -174,7 +317,16 @@ public class GUINetDraw : MonoBehaviour {
         brain = null;
         neurons = null;
         connections = null;
+        creature = null;
         treeDataList = new List<TreeData>();
+    }
+
+    public void SetWorldDrawInformation(int total, int count, float playSpeed, int brainCalculations)
+    {
+        this.totalNumberOfCreatures = total;
+        this.creatureCount = count;
+        this.playSpeed = playSpeed;
+        this.brainCalculations = brainCalculations;
     }
 }
 

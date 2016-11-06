@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
-
+using System.IO;
 
 public class WolrdManager_V2 : MonoBehaviour
 {
@@ -16,10 +16,10 @@ public class WolrdManager_V2 : MonoBehaviour
 
     private int sizeX = 100;
     private int sizeY = 100;
-    private int minCreatureCount = 75;
+    private int minCreatureCount = 60;
     private int totalCreaturesCount = 0;
 
-    private int[] brainNetwork = new int[] {16, 16, 16, 9};  //16, 16 ,16 ,9
+    private int[] brainNetwork = new int[] {20, 40, 9};  //16, 16 ,16 ,9
     // Output
     // Index 0: Forward acceleration
     // Index 1: Turn acceleration
@@ -42,7 +42,7 @@ public class WolrdManager_V2 : MonoBehaviour
     // Index 7: Memory Input 1
     // Index 8: Memory Input 2
 
-    public int playSpeed = 100;
+    public int playSpeed = 1;
     public int slowFactor = 1;
 
     private int slowFactorCounter = 0;
@@ -60,8 +60,8 @@ public class WolrdManager_V2 : MonoBehaviour
     private Vector3 initialMousePosition;
     private Vector3 finalMousePosition;
     private Vector3 initialCameraPosition;
-    private int printTime = 100;
-    private int printCounter =  0;
+    private int brainCalculations = 0;
+    private bool visionState = false;
 
     // Update is called once per frame
     void Update ()
@@ -88,7 +88,7 @@ public class WolrdManager_V2 : MonoBehaviour
                     for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
                     {
 
-                        creatureList[creatureIndex].UpdateRender();
+                        creatureList[creatureIndex].UpdateRender(visionState);
                     }
                 }
 
@@ -96,16 +96,77 @@ public class WolrdManager_V2 : MonoBehaviour
                 slowFactorCounter = 0;
             }
             slowFactorCounter++;
-            CameraMovement();
-
-
-            if (printTime == printCounter)
-            {
-                Debug.Log(WORLD_CLOCK + " " + creatureList.Count);
-                printCounter = 0;
-            }
-            printCounter++;
         }
+
+        CameraMovement();
+        GUIStates();
+    }
+
+    void GUIStates()
+    {
+        if (creatureList != null)
+        {
+            netDrawer.SetWorldDrawInformation(totalCreaturesCount, creatureList.Count, playSpeed>1?playSpeed:(float)playSpeed/(float)slowFactor, brainCalculations);
+        }
+
+        if (netDrawer.createButtonState == 2)
+        {
+            MakeWorld();
+        }
+        else if (netDrawer.fastButtonState == 2)
+        {
+            if (slowFactor > 1)
+            {
+                slowFactor = slowFactor / 2;
+                if (slowFactor <= 0)
+                {
+                    slowFactor = 1;
+                }
+            }
+            else
+            {
+                playSpeed = playSpeed * 2;
+            }
+
+        }
+        else if (netDrawer.slowButtonState == 2 || (netDrawer.slowButtonState > 0 && playSpeed > 4))
+        {
+
+            if (playSpeed > 1)
+            {
+                playSpeed = playSpeed / 2;
+
+                if (playSpeed <= 0)
+                {
+                    playSpeed = 1;
+                }
+            }
+            else
+            {
+                slowFactor = slowFactor * 2;
+            }
+        }
+        else if (netDrawer.visionButtonState == 2)
+        {
+            visionState = !visionState;
+        }
+        else if (netDrawer.saveButtonState == 2)
+        {
+            SaveWorld();
+        }
+    }
+
+    private void SaveWorld()
+    {
+        string filename = "world_snapshot.lses";
+        StreamWriter writer = new StreamWriter(filename);
+
+        for (int i = 0; i < creatureList.Count; i++)
+        {
+            //float neurons[] 
+        }
+
+        writer.Close();
     }
 
     void CameraMovement()
@@ -169,9 +230,6 @@ public class WolrdManager_V2 : MonoBehaviour
             int x2 = (int)finalMousePosition.x;
             int y2 = (int)finalMousePosition.y;
 
-           
-            //Debug.LogError(x1 + " " + y1 +" "+x2+" "+y2);
-
             for (int y = y2; y <= y1; y++)
             {
                 for (int x = x1; x <= x2; x++)
@@ -179,17 +237,6 @@ public class WolrdManager_V2 : MonoBehaviour
                     map_v2.SetSelected(x, y);
                 }
             }
-        }
-
-        if (leftMouseDown == true)
-        {
-            /*map_v2
-            if (map_v2.IsValidLocation((int)mouseCoordsWorld.x, (int)mouseCoordsWorld.y))
-            {
-                
-            }*/
-
-            //map_v2.SetSelected((int)mouseCoordsWorld.x, (int)mouseCoordsWorld.y);
         }
 
         TileDataTextPlacement(mouseCoordsWorld);  
@@ -232,7 +279,24 @@ public class WolrdManager_V2 : MonoBehaviour
         if (allSelectedCreatures.Count > 0)
         {
             ancestryTree.MakeTree(allSelectedCreatures);
-            netDrawer.SetBrain(ancestryTree.GetSelectedCreature().GetBrain(), ancestryTree.GetTreeDataList());
+            netDrawer.SetBrain(ancestryTree.GetSelectedCreature().GetBrain(), ancestryTree.GetTreeDataList(),ancestryTree.GetSelectedCreature());
+        }
+    }
+
+    public void MakeWorld()
+    {
+        if (textureLoaded == false)
+        {
+            brainCalculations = new Brain_V2(brainNetwork,-1).GetCalculations();
+
+            creatureList = new List<Creature_V2>();
+
+            for (int i = 0; i < minCreatureCount; i++)
+            {
+                CreateCreature();
+            }
+
+            textureLoaded = true;
         }
     }
 
@@ -240,15 +304,6 @@ public class WolrdManager_V2 : MonoBehaviour
     {
         Application.runInBackground = this.runInBackground;
         map_v2 = new TileMap_V2(tex, sizeX, sizeY);
-
-        creatureList = new List<Creature_V2>();
-
-        for (int i = 0; i < minCreatureCount; i++)
-        {
-            CreateCreature();
-        }
-
-        textureLoaded = true;
     }
 
     public void CreateCreature()

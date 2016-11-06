@@ -33,6 +33,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
     private int ID = -1;
     private int generation;
     private float worldDeltaTime = 0.001f;
+    private float timeLived = 0f;
 
     private TileMap_V2 map;
     private Material bodyMaterial;
@@ -116,54 +117,16 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         HSBColor leftTileColor = map.GetColor((int)leftPos.x, (int)leftPos.y);
         HSBColor rightTileColor = map.GetColor((int)rightPos.x, (int)rightPos.y);
 
-        /*List<Creature_V2> creatureListAtLeftTile = map.ExistCreatureAtTile((int)leftPos.x, (int)leftPos.y);
-        List<Creature_V2> creatureListAtRightTile = map.ExistCreatureAtTile((int)rightPos.x, (int)rightPos.y);
-
-        //check right sensor collsision
-        if (creatureListAtLeftTile != null)
-        {
-            for (int i = 0; i < creatureListAtLeftTile.Count; i++)
-            {
-                Creature_V2 creature = creatureListAtLeftTile[i];
-                if (!creature.Equals(this))
-                {
-                    if (creature.CollisionCheckWithPoint(leftPos) )
-                    {
-                        leftTileColor = creature.bodyColor;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        //check for left sensor collision
-        if (creatureListAtRightTile != null)
-        {
-            for (int i = 0; i < creatureListAtRightTile.Count; i++)
-            {
-                Creature_V2 creature = creatureListAtRightTile[i];
-                if (!creature.Equals(this))
-                {
-                    if (creature.CollisionCheckWithPoint(rightPos))
-                    {
-                        rightTileColor = creature.bodyColor;
-                        break;
-                    }
-
-                }
-            }
-        }*/
-
         bool spikeTargetFound = false;
         float spikeValue = -1;
         Creature_V2 spikeCreature = null;
         List<Creature_V2> creatureListAtTile = map.ExistCreaturesNearTile((int)base.position.x, (int)base.position.y);
-
+        float[] sensorDistance = new float[4];
 
         for (int i = 0; i < sensorPos.Length; i++)
         {
-            //List<Creature_V2> creatureListAtTile = map.ExistCreaturesBetweenTiles((int)base.position.x, (int)base.position.y, (int)sensorPos[i].x, (int)sensorPos[i].y);
             sensorValue[i] = -1f;
+            sensorDistance[i] = -1f;
 
             if (creatureListAtTile != null)
             {
@@ -172,9 +135,11 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
                     Creature_V2 creature = creatureListAtTile[j];
                     if (!creature.Equals(this))
                     {
+                        float distance;
                         if (spikeTargetFound == false)
                         {
-                            if (creature.IsLineIntersectingWithCircle(base.position, spikePos) == true)
+                            distance = creature.IsLineIntersectingWithCircle(base.position, spikePos);
+                            if (distance != -1f)
                             {
                                 spikeCreature = creature;
                                 spikeValue = spikeCreature.bodyColor.h;
@@ -182,74 +147,21 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
                             }
                         }
 
-                        if (creature.IsLineIntersectingWithCircle(base.position, sensorPos[i]) == true)
+                        distance = creature.IsLineIntersectingWithCircle(base.position, sensorPos[i]);
+
+                        if (distance != -1f)
                         {
                             sensorValue[i] = creature.bodyColor.h;
+                            sensorDistance[i] = distance;
                             break;
                         }
                     }
                 }
             }
-
-            /*List<Creature_V2> creatureListAtTile1 = map.ExistCreatureAtTile((int)base.position.x, (int)base.position.y);
-            List<Creature_V2> creatureListAtTile2 = map.ExistCreatureAtTile((int)sensorPos[i].x, (int)sensorPos[i].y);
-            sensorValue[i] = -1f;
-
-            if (creatureListAtTile1 != null)
-            {
-                for (int j = 0; j < creatureListAtTile1.Count; j++)
-                {
-                    Creature_V2 creature = creatureListAtTile1[j];
-                    if (!creature.Equals(this))
-                    {
-                        if (spikeTargetFound == false)
-                        {
-                            if (creature.IsLineIntersectingWithCircle(base.position, spikePos) == true)
-                            {
-                                spikeCreature = creature;
-                                spikeTargetFound = true;
-                            }
-                        }
-
-                        if (creature.IsLineIntersectingWithCircle(base.position,sensorPos[i]) == true)
-                        {
-                            sensorValue[i] = creature.bodyColor.h;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (creatureListAtTile2 != null && sensorValue[i] == -1f)
-            {
-                for (int j = 0; j < creatureListAtTile2.Count; j++)
-                {
-                    Creature_V2 creature = creatureListAtTile2[j];
-                    if (!creature.Equals(this))
-                    {
-                        if (spikeTargetFound == false)
-                        {
-                            if (creature.IsLineIntersectingWithCircle(base.position, spikePos) == true)
-                            {
-                                spikeCreature = creature;
-                                spikeTargetFound = true;
-                            }
-                        }
-
-                        if (creature.IsLineIntersectingWithCircle(base.position,sensorPos[i]) == true)
-                        {
-                            sensorValue[i] = creature.bodyColor.h;
-                            break;
-                        }
-
-                    }
-                }
-            }*/
         }
 
-
-
         List<Creature_V2> creatureListAtBodyTile = map.ExistCreaturesNearPrecisionTile(base.position.x, base.position.y, base.radius);
+        List<Creature_V2> creaturesInBirthRange = new List<Creature_V2>();
         float hueAverage = -1f;
         float isCollision = -1f;
 
@@ -265,6 +177,11 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
                     {
                         hueAverage += creature.bodyColor.h;
                         isCollision++;
+                        creaturesInBirthRange.Add(creature);
+                    }
+                    else if (creature.CollisionCheckWithCircle(radius*1.25f, base.position))
+                    {
+                        creaturesInBirthRange.Add(creature);
                     }
                 }
             }
@@ -278,13 +195,10 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         }
 
 
-        float[] output = brain.Feedforward(new float[] {sensorValue[0], sensorValue[1], sensorValue[2], sensorValue[3], spikeValue,
+        float[] output = brain.Feedforward(new float[] {sensorDistance[0],sensorDistance[1], sensorDistance[2], sensorDistance[3],
+            sensorValue[0], sensorValue[1], sensorValue[2], sensorValue[3], spikeValue,
             isCollision, hueAverage, bodyTileColor.h, bodyTileColor.s, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s,
             base.radius, previousOutput[7], previousOutput[8] });
-
-        /*float[] output = brain.Feedforward(new float[] {sensorValue[0], sensorValue[1], sensorValue[2], sensorValue[3], spikeValue,
-            isCollision, hueAverage, bodyTileColor.s, leftTileColor.s, rightTileColor.s,
-            base.radius, previousOutput[7], previousOutput[8] });*/
 
         float accelForward = output[0];
         float accelAngular = output[1];
@@ -294,13 +208,13 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         if (output[6] >= 0)
             spikeLength = output[6];
         else
-            spikeLength = /*Mathf.Abs(output[6])*/0;
+            spikeLength = 0;
 
         if (bodyHue>= 0)
-            this.bodyColor.h = bodyHue /*= new HSBColor(bodyHue,1f,1f)*/;
+            this.bodyColor.h = bodyHue;
 
         if (mouthHue >= 0)
-            this.mouthColor.h = mouthHue /* = new HSBColor(mouthHue, 1f, 1f)*/; 
+            this.mouthColor.h = mouthHue; 
 
         map.RemoveCreatureFromTileList(tileDetail[0], tileDetail[1], this);
 
@@ -314,8 +228,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
 
         map.AddCreatureToTileList(tileDetail[0], tileDetail[1], this);
 
-
-        energy.UpdateCreatureEnergy(tileDetail[0], tileDetail[1], output, bodyTileColor.h, mouthColor.h, /*collisions*/spikeCreature);
+        energy.UpdateCreatureEnergy(tileDetail[0], tileDetail[1], output, bodyTileColor.h, mouthColor.h, spikeCreature);
 
         if (energy.GetEnergy() < 1f)
             base.radius = initialRadius - ((1f-energy.GetEnergy())*(initialRadius/2));
@@ -329,10 +242,12 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         }
         else if (energy.GiveBirth() == true)
         {
+            //if(creaturesInBirthRange<0)
             energy.GiveBirth(false);
             world.CreateCreature(this);
         }
 
+        timeLived += worldDeltaTime;
     }
 
     // Find the points of intersection.
@@ -406,7 +321,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         
     }
 
-    public void UpdateRender()
+    public void UpdateRender(bool visionVisual)
     {
         float[] output = brain.GetOutput();
 
@@ -427,27 +342,36 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         }
 
 
-        /*for (int i = 0; i < sensorLine.Length; i++)
+        if (visionVisual)
         {
-            sensorLine[i].SetPosition(0, position);
-            sensorLine[i].SetPosition(1, sensorPos[i]);
+            for (int i = 0; i < sensorLine.Length; i++)
+            {
+                sensorLine[i].SetPosition(0, position);
+                sensorLine[i].SetPosition(1, sensorPos[i]);
+            }
+
+
+
+            for (int i = 0; i < sensorValue.Length; i++)
+            {
+                if (sensorValue[i] >= 0)
+                {
+                    sensorLine[i].SetColors(Color.red, Color.red);
+                }
+                else
+                {
+                    sensorLine[i].SetColors(Color.white, Color.white);
+                }
+            }
         }
-
-
-
-        for (int i = 0; i < sensorValue.Length; i++)
+        else
         {
-            if (sensorValue[i] >=0)
+            for (int i = 0; i < sensorLine.Length; i++)
             {
-                sensorLine[i].SetColors(Color.red, Color.red);
+                sensorLine[i].SetPosition(0, Vector2.zero);
+                sensorLine[i].SetPosition(1, Vector2.zero);
             }
-            else
-            {
-                sensorLine[i].SetColors(Color.white, Color.white);
-            }
-        }*/
-
-
+        }
 
 
         /*if (output[6] > 0)
@@ -499,10 +423,10 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         return brain;
     }
 
-    /*public float GetBodyHue()
+    public float GetLife()
     {
-        return bodyColor.h;
-    }*/
+        return energy.GetLife();
+    }
 
     public void KillWithEnergy()
     {
@@ -517,6 +441,16 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
     public float GetEnergy()
     {
        return energy.GetEnergy();
+    }
+
+    public float GetDeltaEnergy()
+    {
+        return energy.GetDeltaEnergy();
+    }
+
+    public float GetTimeLived()
+    {
+        return timeLived;
     }
 
     public bool IsAlive()
