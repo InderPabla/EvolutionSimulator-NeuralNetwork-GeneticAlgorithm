@@ -28,16 +28,17 @@ public class TileMap_V2
     private int sizeX;
     private int sizeY;
     float worldDeltaTime = 0.001f; //each year last
-    private float maxEnergyGrownOnTile = 0.75f;
-    private float climate = 2f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
+    private float maxEnergyGrownOnTile = 0.8f;
+    private float climate = 3f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
     private List<int[]> floorTiles = new List<int[]>();
 
-    public TileMap_V2(Texture2D tex, int sizeX, int sizeY)
+    public TileMap_V2(Texture2D tex, int sizeX, int sizeY, float climate, float worldDeltaTime)
     {
-        //Color[] texColor = tex.GetPixels(0, 0, sizeX, sizeY);
         this.texture = tex;
         this.sizeX = sizeX;
         this.sizeY = sizeY;
+        this.climate = climate;
+        this.worldDeltaTime = worldDeltaTime;
 
         tiles = new Tile_V2[sizeY, sizeX];
 

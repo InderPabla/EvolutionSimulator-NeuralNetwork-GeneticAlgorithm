@@ -46,11 +46,13 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
     private List<Creature_V2> children;
     private int childCount = 0;
     private bool isNode = false;
+    private string parentNames = "";
 
     public Creature_V2(int ID, int generation, Transform trans, LineRenderer leftLine, LineRenderer rightLine, LineRenderer[] sensorLine, LineRenderer spikeLine,
                        Brain_V2 brain, HSBColor bodyColor, Vector3 bodyPos, Vector3 leftPos, Vector3 rightPos, float sensorSize,
-                       float angle, float worldDeltaTime, float initialRadius, float initialEnergy, TileMap_V2 map, WolrdManager_V2 world) 
-                       : base(initialRadius,bodyPos,angle,0f,0f,1f,worldDeltaTime)
+                       float angle, float worldDeltaTime, float initialRadius, float initialEnergy, float currentEnergy, float life, float minLife, float lifeDecerase, float veloForward, float veloAngular,
+                       TileMap_V2 map, WolrdManager_V2 world, String parentNames) 
+                       : base(initialRadius,bodyPos,angle,veloForward,veloAngular,1f,worldDeltaTime)
     {
         
         this.ID = ID;
@@ -71,7 +73,8 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         this.initialRadius = initialRadius;
         this.map = map;
         this.world = world;
-        
+        this.parentNames = parentNames;
+
         this.textMesh = trans.GetChild(1).GetComponent<TextMesh>();
         this.fightTrans = trans.GetChild(3);
 
@@ -90,7 +93,9 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         this.bodyMaterial = trans.GetComponent<Renderer>().material;
         this.mouthMaterial = trans.GetChild(0).GetComponent<Renderer>().material;
 
-        this.energy = new Energy(initialEnergy, map, worldDeltaTime);
+        this.energy = new Energy(initialEnergy, map, worldDeltaTime, minLife, lifeDecerase);
+        this.energy.SetEnergy(currentEnergy);
+        this.energy.SetLife(life);
 
         this.bodyColor = new HSBColor(UnityEngine.Random.Range(0f,1f),1f,1f);
         this.mouthColor = new HSBColor(UnityEngine.Random.Range(0f, 1f), 1f, 1f);
@@ -103,10 +108,6 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
 
         return (other.ID == this.ID);
     }
-
-    /**/
-
-  
 
     public void UpdateCreaturePhysics()
     {
@@ -179,7 +180,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
                         isCollision++;
                         creaturesInBirthRange.Add(creature);
                     }
-                    else if (creature.CollisionCheckWithCircle(radius*1.25f, base.position))
+                    else if (creature.CollisionCheckWithCircle(radius*2f, base.position))
                     {
                         creaturesInBirthRange.Add(creature);
                     }
@@ -242,68 +243,48 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         }
         else if (energy.GiveBirth() == true)
         {
-            //if(creaturesInBirthRange<0)
-            energy.GiveBirth(false);
+            energy.DoneBirth();
             world.CreateCreature(this);
         }
+        else if (energy.IsAbleToGiveBirth() == true)
+        {
+            for (int i = 0; i < creaturesInBirthRange.Count; i++)
+            {
+                Creature_V2 creature = creaturesInBirthRange[i];
+                if (creature.energy.IsAbleToGiveBirth())
+                {
+                    energy.RemoveEnergy(1f);
+                    creature.energy.RemoveEnergy(1f);
+                    energy.DoneBirth();
+                    creature.energy.DoneBirth();
+
+                    world.CreateCreature(this, creature);
+                    break;
+                }
+                else
+                {
+                    energy.RemoveEnergy(1.25f);
+                    creature.energy.RemoveEnergy(0.25f);
+
+                    energy.DoneBirth();
+                    creature.energy.DoneBirth();
+
+                    world.CreateCreature(this, creature);
+                    break;
+                }
+            }
+        }
+        
 
         timeLived += worldDeltaTime;
     }
 
-    // Find the points of intersection.
-    /*private int FindLineCircleIntersections(
-        float cx, float cy, float radius,
-        Vector2 point1, Vector2 point2,
-        out Vector2 intersection1, out Vector2 intersection2)
-    {
-        float dx, dy, A, B, C, det, t;
-
-        dx = point2.x - point1.x;
-        dy = point2.y - point1.y;
-
-        A = dx * dx + dy * dy;
-        B = 2 * (dx * (point1.x - cx) + dy * (point1.y - cy));
-        C = (point1.x - cx) * (point1.x - cx) +
-            (point1.y - cy) * (point1.y - cy) -
-            radius * radius;
-
-        det = B * B - 4 * A * C;
-        if ((A <= 0.0000001) || (det < 0))
-        {
-            // No real solutions.
-            intersection1 = new Vector2(float.NaN, float.NaN);
-            intersection2 = new Vector2(float.NaN, float.NaN);
-            return 0;
-        }
-        else if (det == 0)
-        {
-            // One solution.
-            t = -B / (2 * A);
-            intersection1 =
-                new Vector2(point1.x + t * dx, point1.y + t * dy);
-            intersection2 = new Vector2(float.NaN, float.NaN);
-            return 1;
-        }
-        else
-        {
-            // Two solutions.
-            t = (float)((-B + Math.Sqrt(det)) / (2 * A));
-            intersection1 =
-                new Vector2(point1.x + t * dx, point1.y + t * dy);
-            t = (float)((-B - Math.Sqrt(det)) / (2 * A));
-            intersection2 =
-                new Vector2(point1.x + t * dx, point1.y + t * dy);
-            return 2;
-        }
-    }*/
 
     private void UpdateSensors()
     {
         float fixedRotation = base.rotation + 90f;
         float leftAngle = (((fixedRotation) + 25f) * Mathf.Deg2Rad);
         float rightAngle = (((fixedRotation) - 25f) * Mathf.Deg2Rad);
-        //float leftAngle = (((angle+90f)+25f) * Mathf.Deg2Rad) + ((Mathf.PI/10f)*output[2]);
-        //float rightAngle = (((angle+90f)-25f) * Mathf.Deg2Rad)+ ((Mathf.PI/10f) *output[3]);
 
         //left and right position calculation
         leftPos = base.position + new Vector3(sensorSize * Mathf.Cos(leftAngle), sensorSize * Mathf.Sin(leftAngle), 0f);
@@ -323,6 +304,11 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
 
     public void UpdateRender(bool visionVisual)
     {
+        /*if (parentNames.Contains("@"))
+        {
+            Debug.Log(parentNames+"  "+(int)position.x+","+(int)position.y);
+        }*/
+
         float[] output = brain.GetOutput();
 
         leftLine.SetPosition(0, position);
@@ -349,8 +335,6 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
                 sensorLine[i].SetPosition(0, position);
                 sensorLine[i].SetPosition(1, sensorPos[i]);
             }
-
-
 
             for (int i = 0; i < sensorValue.Length; i++)
             {
@@ -456,6 +440,11 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
     public bool IsAlive()
     {
         return energy.IsAlive();
+    }
+
+    public String GetParentNames()
+    {
+        return parentNames;
     }
 
     public void Kill()

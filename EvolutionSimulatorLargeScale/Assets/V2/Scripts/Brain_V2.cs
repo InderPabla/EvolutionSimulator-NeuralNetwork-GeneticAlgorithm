@@ -15,9 +15,16 @@ public class Brain_V2 : IEquatable<Brain_V2>
     private string name;
    
     private int ID;
-    private int calculations; 
+    private int calculations;
 
-    public Brain_V2(int[] lay, int ID)
+    private int mutationNumber = 1000;
+    private int mutationSign = 1;
+    private int mutationRandom = 1;
+    private int mutationIncrease = 1;
+    private int mutationDecrease = 1;
+    private int mutationWeakerParentFactor = 1;
+
+    public Brain_V2(int[] lay, int ID, int mutationNumber, int mutationSign, int mutationRandom, int mutationIncrease, int mutationDecrease, int mutationWeakerParentFactor)
     {
         this.ID = ID;
 
@@ -31,6 +38,13 @@ public class Brain_V2 : IEquatable<Brain_V2>
                 calculations += lay[i] * lay[i-1];
             }
         }
+
+        this.mutationNumber = mutationNumber;
+        this.mutationSign = mutationSign;
+        this.mutationRandom = mutationRandom;
+        this.mutationIncrease = mutationIncrease;
+        this.mutationDecrease = mutationDecrease;
+        this.mutationWeakerParentFactor = mutationWeakerParentFactor;
 
         //init neurons and weights matrix
         InitilizeNeurons();
@@ -74,6 +88,57 @@ public class Brain_V2 : IEquatable<Brain_V2>
         }
 
         this.name = parentBrain.name;
+
+        this.mutationNumber = parentBrain.mutationNumber;
+        this.mutationSign = parentBrain.mutationSign;
+        this.mutationRandom = parentBrain.mutationRandom;
+        this.mutationIncrease = parentBrain.mutationIncrease;
+        this.mutationDecrease = parentBrain.mutationDecrease;
+        this.mutationWeakerParentFactor = parentBrain.mutationWeakerParentFactor;
+    }
+
+    public Brain_V2(int[] lay, int ID, float[][][] weights, string name, int mutationNumber, int mutationSign, int mutationRandom, int mutationIncrease, int mutationDecrease, int mutationWeakerParentFactor)
+    {
+        this.ID = ID;
+
+        //deep copy layers array
+        this.layers = new int[lay.Length];
+        for (int i = 0; i < layers.Length; i++)
+        {
+            this.layers[i] = lay[i];
+
+            if (i > 0)
+            {
+                calculations += lay[i] * lay[i - 1];
+            }
+        }
+
+        //init neurons and weights matrix
+        InitilizeNeurons();
+
+        //deep copy weights
+        this.weights = new float[weights.Length][][];
+        for (int i = 0; i < this.weights.Length; i++)
+        {
+            float[][] parentNeuronWeightsOfLayer = weights[i];
+            float[][] weightsOfLayer = new float[parentNeuronWeightsOfLayer.Length][];
+
+            for (int j = 0; j < weightsOfLayer.Length; j++)
+            {
+                weightsOfLayer[j] = (float[])parentNeuronWeightsOfLayer[j].Clone();
+            }
+
+            this.weights[i] = weightsOfLayer;
+        }
+
+        this.name = name;
+
+        this.mutationNumber = mutationNumber;
+        this.mutationSign = mutationSign;
+        this.mutationRandom = mutationRandom;
+        this.mutationIncrease = mutationIncrease;
+        this.mutationDecrease = mutationDecrease;
+        this.mutationWeakerParentFactor = mutationWeakerParentFactor;
     }
 
     //create a static neuron matrix
@@ -231,6 +296,29 @@ public class Brain_V2 : IEquatable<Brain_V2>
         this.ID = ID;
     }
 
+    public void Mutate(float[][][] parentWeights, float mutationRatio)
+    {
+        int mutationValue = (int)(mutationRatio * 1000 * (1f/(float)mutationWeakerParentFactor));
+
+        for (int i = 0; i < weights.Length; i++)
+        {
+            for (int j = 0; j < weights[i].Length; j++)
+            {
+                for (int k = 0; k < weights[i][j].Length; k++)
+                {
+                    int randomNumber = UnityEngine.Random.Range(0, 1000);
+
+                    if (randomNumber < mutationValue)
+                    {
+                        weights[i][j][k] = parentWeights[i][j][k];
+                    }
+                }
+            }
+        }
+
+        Mutate();
+    }
+
     public void Mutate()
     {
         //Mutate weight, each weight has a 4%
@@ -242,24 +330,24 @@ public class Brain_V2 : IEquatable<Brain_V2>
                 {
                     float weight = weights[i][j][k];
 
-                    int randomNumber1 = UnityEngine.Random.Range(1, /*250*/1000); //random number between 1 and 100
-                    if (randomNumber1 <= 1)
+                    int randomNumber1 = UnityEngine.Random.Range(1, mutationNumber); //random number between 1 and 100
+                    if (randomNumber1 <= mutationSign)
                     { //if 1
                       //flip sign of weight
                         weight *= -1f;
                     }
-                    else if (randomNumber1 <= 2)
+                    else if (randomNumber1 <= mutationSign+mutationRandom)
                     { //if 2
                       //pick random weight between -1 and 1
                         weight = UnityEngine.Random.Range(-0.5f, 0.5f);
                     }
-                    else if (randomNumber1 <= 3)
+                    else if (randomNumber1 <= mutationSign+mutationRandom+mutationIncrease)
                     { //if 3
                       //randomly increase by 0% to 100%
                         float factor = UnityEngine.Random.Range(0f, 1f) + 1f;
                         weight *= factor;
                     }
-                    else if (randomNumber1 <= 4)
+                    else if (randomNumber1 <= mutationSign+mutationRandom+mutationIncrease+mutationDecrease)
                     { //if 4
                       //randomly decrease by 0% to 100%
                         float factor = UnityEngine.Random.Range(0f, 1f);

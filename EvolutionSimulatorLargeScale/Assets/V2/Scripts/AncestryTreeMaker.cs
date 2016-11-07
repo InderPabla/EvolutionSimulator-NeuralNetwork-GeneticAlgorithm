@@ -53,7 +53,7 @@ public class AncestryTreeMaker : MonoBehaviour
                 if (children[i].IsAlive())
                     treeData.name = indent + children[i].GetName();
                 else
-                    treeData.name = indent + children[i].GetName() + "          DEAD";
+                    treeData.name = indent + children[i].GetName() + " [DEAD]";
 
                 if (colorIndex == colors.Length)
                     colorIndex = 0;

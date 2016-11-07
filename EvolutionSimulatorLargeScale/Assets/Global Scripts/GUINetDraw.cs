@@ -8,6 +8,7 @@ public class GUINetDraw : MonoBehaviour {
     public int slowButtonState = 0;
     public int visionButtonState = 0;
     public int saveButtonState = 0;
+    public int loadButtonState = 0;
     public int drawNetButtonState = 0;
     public bool drawNetState = false;
 
@@ -103,6 +104,112 @@ public class GUINetDraw : MonoBehaviour {
                     }
                 }
             }
+            else
+            {
+                Vector2 mousePosition = Event.current.mousePosition;
+
+                for (int x = 0; x < neurons.Length; x++)
+                {
+                    float numberOfNeuronsInLayer = neurons[x].Length;
+                    float yRatio = (screenHeight / 2f) / numberOfNeuronsInLayer;
+
+                    float xpos = x * xOff;
+                    float ypos = 0f;
+                    for (int y = 0; y < numberOfNeuronsInLayer; y++)
+                    {
+
+                        ypos = y * yRatio + yOff;
+                        Rect rec = new Rect(xpos, ypos, rectWidth, rectHeight);
+                        if (rec.Contains(mousePosition) == true)
+                        {
+                            if (x == 0)
+                            {
+                                float nextLayerYRatio = (screenHeight / 2f) / (float)neurons[x+1].Length;
+                                float nextXPos = (int)((x + 1) * xOff);
+                                float currentXPos = (int)((x) * xOff);
+
+                                for (int z = 0; z < neurons[x + 1].Length; z++)
+                                {
+                                    Vector2 pointA = new Vector2(rec.x + (int)(rectWidth / 2f), rec.y + (int)(rectHeight / 2f));
+                                    Vector2 pointB = new Vector2(nextXPos + (int)(rectWidth / 2f), nextLayerYRatio * z + yOff + (int)(rectHeight / 2f));
+
+                                    Color lineColor = positiveLineColor;
+
+                                    if (connections[x][z][y] <= 0f)
+                                    {
+                                        lineColor = negativeLineColor;
+                                    }
+
+                                    Drawing.DrawLine(pointA, pointB, lineColor, 1f, texture);
+                                }
+                                break;
+                            }
+                            else if (x == (neurons.Length - 1))
+                            {
+                                float nextLayerYRatio = (screenHeight / 2f) / (float)neurons[x - 1].Length;
+                                float nextXPos = (int)((x - 1) * xOff);
+
+                                for (int z = 0; z < neurons[x - 1].Length; z++)
+                                {
+                                    Vector2 pointA = new Vector2(rec.x + (int)(rectWidth / 2f), rec.y + (int)(rectHeight / 2f));
+                                    Vector2 pointB = new Vector2(nextXPos + (int)(rectWidth / 2f), nextLayerYRatio * z + yOff + (int)(rectHeight / 2f));
+
+                                    Color lineColor = positiveLineColor;
+
+                                    if (connections[x - 1][y][z] <= 0f)
+                                    {
+                                        lineColor = negativeLineColor;
+                                    }
+
+                                    Drawing.DrawLine(pointA, pointB, lineColor, 1f, texture);
+                                }
+
+                                break;
+                            }
+                            else
+                            {
+                                float nextLayerYRatio = (screenHeight / 2f) / (float)neurons[x - 1].Length;
+                                float nextXPos = (int)((x - 1) * xOff);
+
+                                for (int z = 0; z < neurons[x - 1].Length; z++)
+                                {
+                                    Vector2 pointA = new Vector2(rec.x + (int)(rectWidth / 2f), rec.y + (int)(rectHeight / 2f));
+                                    Vector2 pointB = new Vector2(nextXPos + (int)(rectWidth / 2f), nextLayerYRatio * z + yOff + (int)(rectHeight / 2f));
+
+                                    Color lineColor = positiveLineColor;
+
+                                    if (connections[x - 1][y][z] <= 0f)
+                                    {
+                                        lineColor = negativeLineColor;
+                                    }
+
+                                    Drawing.DrawLine(pointA, pointB, lineColor, 1f, texture);
+                                }
+
+                                float nextLayerYRatio2 = (screenHeight / 2f) / (float)neurons[x + 1].Length;
+                                float nextXPos2 = (int)((x + 1) * xOff);
+
+                                for (int z = 0; z < neurons[x + 1].Length; z++)
+                                {
+                                    Vector2 pointA = new Vector2(rec.x + (int)(rectWidth / 2f), rec.y + (int)(rectHeight / 2f));
+                                    Vector2 pointB = new Vector2(nextXPos2 + (int)(rectWidth / 2f), nextLayerYRatio2 * z + yOff + (int)(rectHeight / 2f));
+
+                                    Color lineColor = positiveLineColor;
+
+                                    if (connections[x][z][y] <= 0f)
+                                    {
+                                        lineColor = negativeLineColor;
+                                    }
+
+                                    Drawing.DrawLine(pointA, pointB, lineColor, 1f, texture);
+                                }
+                                break;   
+                            }
+                        }
+                    }
+                }
+
+            }
 
             GUIStyle myStyle = new GUIStyle();
             myStyle.fontStyle = FontStyle.Bold;
@@ -131,11 +238,12 @@ public class GUINetDraw : MonoBehaviour {
                 if (i == 0)
                 {
                     string cretureInformation = treeDataList[i].name +
-                                                ", Child Count: " + creature.GetChildCount() +
-                                                ", Time Lived: " + creature.GetTimeLived().ToString("0.000") +
-                                                ", Life: " + creature.GetLife().ToString("0.000") +
-                                                ", Energy: " +creature.GetEnergy().ToString("0.000") +
-                                                ", Delta: "+ creature.GetDeltaEnergy();
+                                                ", Parent: [" + creature.GetParentNames()+"]"+
+                                                "\n                                                         Child Count: " + creature.GetChildCount() +
+                                                "\n                                                         Time Lived: " + creature.GetTimeLived().ToString("0.000") +
+                                                "\n                                                         Life: " + creature.GetLife().ToString("0.000") +
+                                                "\n                                                         Energy: " + creature.GetEnergy().ToString("0.000") +
+                                                "\n                                                         Delta: " + creature.GetDeltaEnergy();
 
                     GUI.Label(new Rect(1f, screenHeight / 1.9f + rectHeight + i * ( yOff / 1.5f), rectWidth, rectHeight), cretureInformation, myStyle);
                 }
@@ -270,6 +378,26 @@ public class GUINetDraw : MonoBehaviour {
         GUI.color = Color.white;
         myStyle.normal.textColor = Color.white;
         GUI.Label(saveButton, "Save", myStyle);
+
+        //load button
+        Rect loadButton = new Rect(screenWidth - buttonWidth * 3 - 6, screenHeight - buttonHeight*2 -3, buttonWidth, buttonHeight);
+        if (Input.GetMouseButton(0) && loadButton.Contains(Event.current.mousePosition))
+        {
+            GUI.color = Color.red;
+            GUI.DrawTexture(loadButton, texture);
+            loadButtonState++;
+        }
+        else
+        {
+
+            GUI.color = Color.blue;
+            GUI.DrawTexture(loadButton, texture);
+            loadButtonState = 0;
+        }
+
+        GUI.color = Color.white;
+        myStyle.normal.textColor = Color.white;
+        GUI.Label(loadButton, "Load", myStyle);
 
 
         //UI numbers

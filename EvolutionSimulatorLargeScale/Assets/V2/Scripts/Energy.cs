@@ -6,6 +6,7 @@ public class Energy
 {
 
     private bool giveBirth = false;
+    private int birthFrameCounter = 0;
     private bool isAlive = true;
     private float initialEnergy;
     private float currentEnergy;
@@ -16,19 +17,21 @@ public class Energy
     private const float MIN_BRITH_ENERGY = 2f;
 
     private float maturity = 0f;
-    private const float MIN_FIGHT_MATURITY = 0f;
-    //private float birthTimer = 0f;
-    //private const float MIN_BIRTH_MATURITY = 1f; //must wait at least 1 year
-   // private const float MIN_BIRTH_TIME = 0f; //must wait at least 1 year
+    private const float MIN_FIGHT_MATURITY = 0.25f;
 
     private float life = 1f;
+    private float minLife = 5f;
+    private float lifeDecerase = 0.7f;
 
-    public Energy(float initialEnergy, TileMap_V2 map, float worldDeltaTime)
+    public Energy(float initialEnergy, TileMap_V2 map, float worldDeltaTime, float minLife, float lifeDecerase)
     {
         this.initialEnergy = initialEnergy;
         this.currentEnergy = initialEnergy;
         this.map = map;
         this.worldDeltaTime = worldDeltaTime;
+
+        this.minLife = minLife;
+        this.lifeDecerase = lifeDecerase;
     }
 
     public void UpdateCreatureEnergy(int x, int y, float[] output, float groundHue, float mouthHue, Creature_V2 spikeCreature)
@@ -88,16 +91,20 @@ public class Energy
             //deltaEnergy -= (worldDeltaTime) / 1f;
         }
 
-        if (currentEnergy > MIN_BRITH_ENERGY /*&& maturity > MIN_BIRTH_MATURITY*/ && birth>0)
-        {
-            //if (birthTimer > MIN_BIRTH_TIME)
-            //{
-                 //birthTimer = 0f;
-            deltaEnergy -= 1.5f;    
-            giveBirth = true;
-            //}
 
-            //birthTimer += worldDeltaTime;
+        if (currentEnergy > MIN_BRITH_ENERGY && birth > 0f && birthFrameCounter == 0)
+        {
+            birthFrameCounter++;
+        }
+        else if (birthFrameCounter <6 && birthFrameCounter>0)
+        {
+            birthFrameCounter++;
+        }
+        else if(birthFrameCounter == 6)
+        {
+            deltaEnergy -= 1.5f;
+            giveBirth = true;
+            birthFrameCounter = 0;
         }
 
         currentEnergy += deltaEnergy;
@@ -107,11 +114,9 @@ public class Energy
         maturity += worldDeltaTime;
 
         //life -= ((worldDeltaTime /3) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 0.25f));
-        //life -= ((worldDeltaTime /5) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 0.4f));
+        life -= ((worldDeltaTime /minLife) / Mathf.Pow(Mathf.Max(currentEnergy, 1f), lifeDecerase));
 
-        life -= (worldDeltaTime / (5 + (Mathf.Max(currentEnergy, 0f))*2f));
-
-        //life -= ((worldDeltaTime / 5) / Mathf.Pow((Mathf.Max(currentEnergy, 1f) / initialEnergy), 1f));
+        //life -= (worldDeltaTime / (5 + (Mathf.Max(currentEnergy, 0f))*2f));
     }
 
 
@@ -140,9 +145,15 @@ public class Energy
         return giveBirth;
     }
 
-    public void GiveBirth(bool state)
+    public void DoneBirth()
     {
-        giveBirth = state;
+        giveBirth = false;
+        birthFrameCounter = 0;
+    }
+
+    public bool IsAbleToGiveBirth()
+    {
+        return birthFrameCounter > 0;
     }
 
     public bool IsAlive()
@@ -156,5 +167,13 @@ public class Energy
 
     }
 
+    public void SetEnergy(float currentEnergy)
+    {
+        this.currentEnergy = currentEnergy;
+    }
 
+    public void SetLife(float life)
+    {
+        this.life = life;
+    }
 }

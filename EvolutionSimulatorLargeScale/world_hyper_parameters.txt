@@ -1,0 +1,13 @@
+neural_layers: 40
+min_creature_count: 60
+max_visual_speed: 11
+climate: 7
+min_life: 5.5
+life_decrease: 0.5
+@world_delta_time: 0.003
+@mutation_number: 1000
+@mutation_weaker_parent_factor: 1
+@mutation_sign: 1
+@mutation_random: 1
+@mutation_increase: 1
+@mutation_decrease: 1
