@@ -32,7 +32,16 @@ public class TileMap_V2
     private float climate = 3f; //1 is excellent climate for growth, 0 means nothing will grow, and below zero, vegetation starts to die
     private List<int[]> floorTiles = new List<int[]>();
 
-    public TileMap_V2(Texture2D tex, int sizeX, int sizeY, float climate, float worldDeltaTime)
+    private float seedSoilFracture = 1f;
+    private float seedSoilColor = 0.5f;
+    private float seedWater = 1425f;
+    private float seedSoil = 134f;
+    private float seedSoilPower = 1.25f;
+    private float seedFirt = 8925;
+    private float seedSoilFirt = 5f;
+    private float seedSoilFirtPower = 0.3f;
+
+    public TileMap_V2(Texture2D tex, int sizeX, int sizeY, float climate, float worldDeltaTime, float seedSoilFracture, float seedSoilColor, float seedWater, float seedSoil, float seedSoilPower, float seedFirt, float seedSoilFirt, float seedSoilFirtPower)
     {
         this.texture = tex;
         this.sizeX = sizeX;
@@ -42,60 +51,77 @@ public class TileMap_V2
 
         tiles = new Tile_V2[sizeY, sizeX];
 
-        /*noiseSeed(SEED);
-        randomSeed(SEED);*/
-        float stepSize = 0.1f;
-        float stepSizeWater = 0.01f;
+        /*float seedSoilFracture = 1f;
+        float seedSoilColor = 0.5f;
 
+        float seedWater = 1425f;
+        float seedSoil = 134f;
+
+        float seedSoilPower = 1.25f;
+
+        float seedFirt = 8925;
+        float seedSoilFirt = 5f;
+        float seedSoilFirtPower = 0.3f;*/
+
+        this.seedSoilFracture = seedSoilFracture;
+        this.seedSoilColor = seedSoilColor;
+        this.seedWater = seedWater;
+        this.seedSoil = seedSoil;
+        this.seedSoilPower = seedSoilPower;
+        this.seedFirt = seedFirt;
+        this.seedSoilFirt = seedSoilFirt;
+        this.seedSoilFirtPower = seedSoilFirtPower;
+
+        GenerateTile(seedSoilFracture, seedSoilColor, seedWater,seedSoil,seedSoilPower,seedFirt, seedSoilFirt, seedSoilFirtPower);
+
+        
+
+        texture.Apply();
+    }
+
+    private void GenerateTile(float seedSoilFracture, float seedSoilColor, float seedWater, float seedSoil, float seedSoilPower, float seedFertil, float seedSoilFirt, float seedSoilFirtPower)
+    {
         for (int x = 0; x < sizeY; x++)
         {
             for (int y = 0; y < sizeX; y++)
             {
-                /*float bigForce = Mathf.Pow(((float)y) / sizeY, 0.5f);
-                float fertility = Mathf.PerlinNoise(x * stepSize * 3f, y * stepSize * 3f) * (1f - bigForce) * 5.0f + Mathf.PerlinNoise(x * stepSize * 0.5f, y * stepSize * 0.5f) * bigForce * 5.0f - 1.5f;
-                float climateType = Mathf.PerlinNoise(x * stepSize * 0.2f + 10000f, y * stepSize * 0.2f + 10000f) * 1.63f - 0.4f;
-                float waterType = Mathf.PerlinNoise(x * stepSizeWater + 10425f, y * stepSizeWater + 34224f);*/
+                tiles[y, x] = new Tile_V2();
+                float climateType = 0.6f;
+                float type = 1f;
+                float firt = 0.8f;
 
-                float seed = -0.1f;
-                float bigForce = Mathf.Pow(((float)y) / sizeY, 0.5f);
-                float fertility = Mathf.PerlinNoise(x * stepSize * 3f + seed, y * stepSize * 3f + seed) * (1f - bigForce) * 5.0f + Mathf.PerlinNoise(x * stepSize * 0.5f + seed, y * stepSize * 0.5f + seed) * bigForce * 5.0f - 1.5f;
-                float climateType = Mathf.PerlinNoise(x * stepSize * 0.2f + 10000f + seed, y * stepSize * 0.2f + 10000f + seed) * 1.63f - 0.4f;
-                float waterType = Mathf.PerlinNoise(x * stepSizeWater + 10425f + seed, y * stepSizeWater + 34224f + seed);
-                
-                climateType = Mathf.Min(Mathf.Max(climateType, 0f), 0.8f);
+                HSBColor color = new HSBColor();
 
-                tiles[y,x] = new Tile_V2();
+                float climateX = seedSoil + x / 100f * 10f;
+                float climateY = seedSoil + y / 100f * 10f;
+                float waterX = seedWater + x / 100f * 15f;
+                float waterY = seedWater + y / 100f * 15f;
+                float fertX = seedFertil + x / 100f * 13f;
+                float fertY = seedFertil + y / 100f * 13f;
 
-                tiles[y, x].maxEnergy = Math.Min(fertility,0.75f);
-                tiles[y, x].currentEnergy = tiles[y, x].maxEnergy;
+                climateType = Mathf.Pow(Mathf.Min(Mathf.Abs(Mathf.PerlinNoise(climateX * seedSoilColor, climateY * seedSoilColor)),1f), seedSoilPower);
+                type = Mathf.Min(Mathf.Abs(Mathf.PerlinNoise(waterX * seedSoilFracture, waterY * seedSoilFracture )), 1f);
+                firt = Mathf.Pow(Mathf.Min(Mathf.Abs(Mathf.PerlinNoise(fertX * seedSoilFirt, fertY * seedSoilFirt)), 1f), seedSoilFirtPower);
 
-
-                HSBColor color = HSBColor.HSBCOLOR_BLACK;
-
-                /*if (fertility > 0.75f)
-                    tiles[y, x].type = Tile_V2.TILE_FERT;
-                else if (waterType<0.2f)
-                    tiles[y, x].type = Tile_V2.TILE_INFERT;
-                else
-                    tiles[y, x].type = Tile_V2.TILE_WATER;*/
-
-                if (waterType > 0.7f)
+                if (type > 0.4f)
                 {
-                    if (fertility > 0.75f)
-                        tiles[y, x].type = Tile_V2.TILE_FERT;
-                    else
-                        tiles[y, x].type = Tile_V2.TILE_WATER;
+                    tiles[y, x].currentEnergy = firt;
+                    tiles[y, x].type = Tile_V2.TILE_FERT;
                 }
                 else
+                {
+                    tiles[y, x].currentEnergy = 0f;
                     tiles[y, x].type = Tile_V2.TILE_WATER;
-
+                }
 
                 if (tiles[y, x].type == Tile_V2.TILE_FERT)
                 {
                     color.h = Mathf.Max(0f, climateType);
                     color.s = tiles[y, x].currentEnergy;
                     color.b = 1f - (0.25f - (color.s * 0.25f));
-                    floorTiles.Add(new int[] {x,y});
+                    tiles[y, x].maxEnergy = tiles[y, x].currentEnergy;
+                    floorTiles.Add(new int[] { x, y });
+
                 }
                 else if (tiles[y, x].type == Tile_V2.TILE_INFERT)
                 {
@@ -109,11 +135,25 @@ public class TileMap_V2
                     tiles[y, x].currentEnergy = 0f;
                     tiles[y, x].maxEnergy = 0f;
                 }
-                tiles[y, x].detail = color;     
-                texture.SetPixel(x,y,tiles[y,x].detail.ToColor());
+                tiles[y, x].detail = color;
+                //texture.SetPixel(x, y, tiles[y, x].detail.ToColor());
+
+                /*int centerX = sizeX / 2;
+                int centerY = sizeY / 2;
+                bool isIn = Mathf.Pow(Mathf.Pow(centerX-x,2f)+ Mathf.Pow(centerY -y,2f),0.5f)<30f;
+
+                if (isIn)
+                {
+                    tiles[y, x].type = Tile_V2.TILE_FERT;
+                    tiles[y, x].currentEnergy = 0.8f;
+                }
+                else;
+                {
+                    tiles[y, x].type = Tile_V2.TILE_WATER;
+                    tiles[y, x].currentEnergy = 0f;
+                }*/
             }
         }
-        texture.Apply();
     }
 
     public void Apply(float playSpeed, bool visual)
@@ -170,9 +210,14 @@ public class TileMap_V2
 
                     tiles[y, x].lastUpdated = WolrdManager_V2.WORLD_CLOCK;
                 }
+                else
+                {
+                    texture.SetPixel(x, y, tiles[y, x].detail.ToColor());
+                }
             }
         }
 
+       
         if (visual == true)
         {
             texture.Apply();
@@ -228,8 +273,6 @@ public class TileMap_V2
         }
 
         return energy;
-
-
     }
 
     public bool IsValidLocation(int x, int y)

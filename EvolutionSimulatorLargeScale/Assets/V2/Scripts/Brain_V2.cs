@@ -34,7 +34,8 @@ public class Brain_V2 : IEquatable<Brain_V2>
         {
             this.layers[i] = lay[i];
 
-            if (i > 0) {
+            if (i > 0)
+            {
                 calculations += lay[i] * lay[i-1];
             }
         }

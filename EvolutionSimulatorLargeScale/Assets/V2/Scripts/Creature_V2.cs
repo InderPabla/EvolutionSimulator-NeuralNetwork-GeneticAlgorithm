@@ -47,10 +47,10 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
     private int childCount = 0;
     private bool isNode = false;
     private string parentNames = "";
-
+    private string creatureName = "";
     public Creature_V2(int ID, int generation, Transform trans, LineRenderer leftLine, LineRenderer rightLine, LineRenderer[] sensorLine, LineRenderer spikeLine,
                        Brain_V2 brain, HSBColor bodyColor, Vector3 bodyPos, Vector3 leftPos, Vector3 rightPos, float sensorSize,
-                       float angle, float worldDeltaTime, float initialRadius, float initialEnergy, float currentEnergy, float life, float minLife, float lifeDecerase, float veloForward, float veloAngular,
+                       float angle, float worldDeltaTime, float initialRadius, float initialEnergy, float currentEnergy, float life, float minLife, float lifeDecerase, float eatDamage, float veloDamage, float angDamage, float fightDamage, float veloForward, float veloAngular,
                        TileMap_V2 map, WolrdManager_V2 world, String parentNames) 
                        : base(initialRadius,bodyPos,angle,veloForward,veloAngular,1f,worldDeltaTime)
     {
@@ -93,12 +93,14 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         this.bodyMaterial = trans.GetComponent<Renderer>().material;
         this.mouthMaterial = trans.GetChild(0).GetComponent<Renderer>().material;
 
-        this.energy = new Energy(initialEnergy, map, worldDeltaTime, minLife, lifeDecerase);
+        this.energy = new Energy(initialEnergy, map, worldDeltaTime, minLife, lifeDecerase, eatDamage, veloDamage, angDamage, fightDamage);
         this.energy.SetEnergy(currentEnergy);
         this.energy.SetLife(life);
 
         this.bodyColor = new HSBColor(UnityEngine.Random.Range(0f,1f),1f,1f);
         this.mouthColor = new HSBColor(UnityEngine.Random.Range(0f, 1f), 1f, 1f);
+
+        this.creatureName = brain.GetName();
     }
 
     public bool Equals(Creature_V2 other)
@@ -302,104 +304,103 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         
     }
 
-    public void UpdateRender(bool visionVisual)
+    public void UpdateRender(bool visionVisual, Vector3 bottomLeft, Vector3 topLeft)
     {
-        /*if (parentNames.Contains("@"))
+        if ((position.x > bottomLeft.x) && 
+            (position.x < topLeft.x) && 
+            (position.y > bottomLeft.y) && 
+            (position.y < topLeft.y))
         {
-            Debug.Log(parentNames+"  "+(int)position.x+","+(int)position.y);
-        }*/
+            float[] output = brain.GetOutput();
 
-        float[] output = brain.GetOutput();
+            leftLine.SetPosition(0, position);
+            leftLine.SetPosition(1, leftPos);
+            rightLine.SetPosition(0, position);
+            rightLine.SetPosition(1, rightPos);
 
-        leftLine.SetPosition(0, position);
-        leftLine.SetPosition(1, leftPos);
-        rightLine.SetPosition(0, position);
-        rightLine.SetPosition(1, rightPos);
-
-        if (output[4] > 0)
-        {
-            leftLine.SetColors(Color.black, Color.black);
-            rightLine.SetColors(Color.black, Color.black);
-        }
-        else
-        {
-            leftLine.SetColors(Color.white, Color.white);
-            rightLine.SetColors(Color.white, Color.white);
-        }
-
-
-        if (visionVisual)
-        {
-            for (int i = 0; i < sensorLine.Length; i++)
+            if (output[4] > 0)
             {
-                sensorLine[i].SetPosition(0, position);
-                sensorLine[i].SetPosition(1, sensorPos[i]);
+                leftLine.SetColors(Color.black, Color.black);
+                rightLine.SetColors(Color.black, Color.black);
+            }
+            else
+            {
+                leftLine.SetColors(Color.white, Color.white);
+                rightLine.SetColors(Color.white, Color.white);
             }
 
-            for (int i = 0; i < sensorValue.Length; i++)
+
+            if (visionVisual)
             {
-                if (sensorValue[i] >= 0)
+                for (int i = 0; i < sensorLine.Length; i++)
                 {
-                    sensorLine[i].SetColors(Color.red, Color.red);
+                    sensorLine[i].SetPosition(0, position);
+                    sensorLine[i].SetPosition(1, sensorPos[i]);
                 }
-                else
+                
+                for (int i = 0; i < sensorValue.Length; i++)
                 {
-                    sensorLine[i].SetColors(Color.white, Color.white);
+                    if (sensorValue[i] >= 0)
+                    {
+                        sensorLine[i].SetColors(Color.red, Color.red);
+                    }
+                    else
+                    {
+                        sensorLine[i].SetColors(Color.white, Color.white);
+                    }
                 }
             }
-        }
-        else
-        {
-            for (int i = 0; i < sensorLine.Length; i++)
+            else
             {
-                sensorLine[i].SetPosition(0, Vector2.zero);
-                sensorLine[i].SetPosition(1, Vector2.zero);
+                for (int i = 0; i < sensorLine.Length; i++)
+                {
+                    sensorLine[i].SetPosition(0, Vector2.zero);
+                    sensorLine[i].SetPosition(1, Vector2.zero);
+                }
+            }
+
+
+            /*if (output[6] > 0)
+            {
+                //outlineTrans.localScale = new Vector3(2f, 2f, 1f);
+                fightTrans.localScale = new Vector3(1.6f, 1.6f, 1f);
+                fightTrans.GetComponent<Renderer>().material.color = new Color(1f,0f,0f,0.5f);
+            }
+            else
+            {
+                fightTrans.localScale = new Vector3(1.075f, 1.075f, 1f);
+                fightTrans.GetComponent<Renderer>().material.color = Color.black;
+            }*/
+
+            spikeLine.SetPosition(0, position);
+            spikeLine.SetPosition(1, spikePos);
+            spikeLine.SetColors(Color.red, Color.red);
+
+            bodyMaterial.color = bodyColor.ToColor();
+            mouthMaterial.color = mouthColor.ToColor();
+            trans.position = position;
+
+            trans.eulerAngles = new Vector3(0f, 0f, rotation);
+            rotation = trans.eulerAngles.z; //resets it back to 0-360
+
+            textMesh.transform.eulerAngles = new Vector3(0, 0, 0f);
+            textMesh.transform.position = position + new Vector3(0f, 0.4f, 0f);
+
+            if (isNode == true)
+            {
+                //trans.localScale = new Vector3(radius * 12f, radius * 12f, 1f);
+                //textTrans.localScale = new Vector3(4f,4f,4f);
+
+                textMesh.transform.localScale = new Vector3(2f, 2f, 2f);
+                textMesh.color = Color.red;
+            }
+            else
+            {
+                trans.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
+                textMesh.transform.localScale = new Vector3(1f, 1f, 1f);
+                textMesh.color = Color.white;
             }
         }
-
-
-        /*if (output[6] > 0)
-        {
-            //outlineTrans.localScale = new Vector3(2f, 2f, 1f);
-            fightTrans.localScale = new Vector3(1.6f, 1.6f, 1f);
-            fightTrans.GetComponent<Renderer>().material.color = new Color(1f,0f,0f,0.5f);
-        }
-        else
-        {
-            fightTrans.localScale = new Vector3(1.075f, 1.075f, 1f);
-            fightTrans.GetComponent<Renderer>().material.color = Color.black;
-        }*/
-
-        spikeLine.SetPosition(0, position);
-        spikeLine.SetPosition(1, spikePos);
-        spikeLine.SetColors(Color.red,Color.red);
-
-        bodyMaterial.color = bodyColor.ToColor();
-        mouthMaterial.color = mouthColor.ToColor();
-        trans.position = position;
-
-        trans.eulerAngles = new Vector3(0f, 0f, rotation);
-        rotation = trans.eulerAngles.z; //resets it back to 0-360
-
-        textMesh.transform.eulerAngles = new Vector3(0, 0, 0f);
-        textMesh.transform.position = position + new Vector3(0f, 0.4f, 0f);
-
-        if (isNode == true)
-        {
-            //trans.localScale = new Vector3(radius * 12f, radius * 12f, 1f);
-            //textTrans.localScale = new Vector3(4f,4f,4f);
-
-            textMesh.transform.localScale = new Vector3(2f, 2f, 2f);
-            textMesh.color = Color.red;
-        }
-        else
-        {
-            trans.localScale = new Vector3(radius*2f, radius*2f, 1f);
-            textMesh.transform.localScale = new Vector3(1f, 1f, 1f);
-            textMesh.color = Color.white;
-        }
-
-
     }
 
     public Brain_V2 GetBrain()
@@ -449,9 +450,11 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
 
     public void Kill()
     {
-        //map.AddEnergyToTile(tileDetail[0], tileDetail[1],0.25f);
         children.Clear();
+        brain = null; 
         map.RemoveCreatureFromTileList(tileDetail[0], tileDetail[1], this);
+        map = null;
+
         world.RemoveCreature(this);
         GameObject.Destroy(trans.gameObject);
     }
@@ -495,7 +498,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
 
     public string GetName()
     {
-        return brain.GetName();
+        return creatureName;
     }
 
     public void SetIsNode(bool isNode)

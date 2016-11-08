@@ -22,13 +22,21 @@ public class Energy
     private float life = 1f;
     private float minLife = 5f;
     private float lifeDecerase = 0.7f;
+    private float eatDamage = 0f;
+    private float veloDamage = 3f;
+    private float angDamage = 0.5f;
+    private float fightDamage =  0.5f;
 
-    public Energy(float initialEnergy, TileMap_V2 map, float worldDeltaTime, float minLife, float lifeDecerase)
+    public Energy(float initialEnergy, TileMap_V2 map, float worldDeltaTime, float minLife, float lifeDecerase, float eatDamage, float veloDamage, float angDamage, float fightDamage)
     {
         this.initialEnergy = initialEnergy;
         this.currentEnergy = initialEnergy;
         this.map = map;
         this.worldDeltaTime = worldDeltaTime;
+        this.eatDamage = eatDamage;
+        this.veloDamage = veloDamage;
+        this.angDamage = angDamage;
+        this.fightDamage = fightDamage;
 
         this.minLife = minLife;
         this.lifeDecerase = lifeDecerase;
@@ -45,8 +53,8 @@ public class Energy
         deltaEnergy = 0f;
 
         deltaEnergy -= (worldDeltaTime / 5f) * (Mathf.Sqrt(Mathf.Max(currentEnergy / initialEnergy, 1f)));  //natural energy loss (creature will die in 5 years)
-        deltaEnergy -= (Mathf.Abs(accelForward) * worldDeltaTime) / /*5f*/3f; //if creature keep moving at max speed it will die in 5 years
-        deltaEnergy -= (Mathf.Abs(accelAngular) * worldDeltaTime) / /*1f*/0.5f; //if creature keeps turing at max acceleration it will die in 2 years
+        deltaEnergy -= (Mathf.Abs(accelForward) * worldDeltaTime) / veloDamage/*5f3f*/; //if creature keep moving at max speed it will die in 5 years
+        deltaEnergy -= (Mathf.Abs(accelAngular) * worldDeltaTime) / angDamage/*1f0.5f*/; //if creature keeps turing at max acceleration it will die in 2 years
                                                                         // At worst if the creatures keep turning and moving at max rate it will die in 1.1 year
 
         int tileType = map.GetTileType(x, y);
@@ -56,7 +64,7 @@ public class Energy
         }
         else if (eatFood > 0 && tileType != Tile_V2.TILE_INFERT)
         {
-            deltaEnergy += map.Eat(x, y) / 2.5f;
+            deltaEnergy += map.Eat(x, y) / 1.1f;
 
             // 1 (cirmum) = 2*pi*r 
             // 1/(pi*2) = r = 0.15915494309189533576888376337251
@@ -69,7 +77,7 @@ public class Energy
             float groundY = Mathf.Sin(groundHue * Mathf.PI * 2);
             float dist = Mathf.Pow(Mathf.Pow(mouthX - groundX, 2) + Mathf.Pow(mouthY - groundY, 2), 0.5f);
 
-            deltaEnergy -= (dist * worldDeltaTime * 0f); //2 is good
+            deltaEnergy -= (dist * worldDeltaTime * eatDamage); //2 is good
         }
 
         if (fight > 0 && /*maturity > MIN_BIRTH_MATURITY &&*/ spikeCreature != null && maturity> MIN_FIGHT_MATURITY)
@@ -78,7 +86,7 @@ public class Energy
             float enemyEnergy = spikeCreature.GetEnergy();
             if (enemyEnergy > 0f)
             {
-                float energySuck = 0.5f;
+                float energySuck = fightDamage * (Mathf.Max(currentEnergy,0f));
 
                 enemyEnergy -= energySuck;
                 if (enemyEnergy < 0f)

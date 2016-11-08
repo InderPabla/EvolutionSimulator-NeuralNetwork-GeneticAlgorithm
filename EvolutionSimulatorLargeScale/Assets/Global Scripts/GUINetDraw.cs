@@ -20,6 +20,7 @@ public class GUINetDraw : MonoBehaviour {
     private float[][][] connections;
 
     private Color backgroundColor;
+    private Color deadColor;
     private Color negativeLineColor;
     private Color positiveLineColor;
     private Color neuronColor;
@@ -33,10 +34,16 @@ public class GUINetDraw : MonoBehaviour {
     private int creatureCount = 0;
     private float playSpeed = 1;
 
+    private string[] inputNames = new string[] {"[Sensor_1_Dist]", "[Sensor_2_Dist]", "[Sensor_3_Dist]", "[Sensor_4_Dist]",
+                                                 "[Sensor_1_Hue]", "[Sensor_2_Hue]", "[Sensor_3_Hue]", "[Sensor_4_Hue]","[Spike_Hue]",
+                                                 "[Collide?]", "[Collide_Hue]", "[Tile_Hue]", "[Tile_Sat]", "[Left_Hue]", "[Left_Sat]", "[Right_Hue]", "[Right_Sat]",
+                                                 "[Radius]", "[Mem_In_1]","[Mem_In_2]" };
+
+    private string[] outputNames = new string[] {"[Velo_Fwd]","[Velo_Ang]","[MouthHue]","[BodyHue]","[Eat?]","[Birth?]","[Spike_Len]","[Mem_Out_1]","[Mem_Out_2]"};
+
     // Use this for initialization
     void Start () {
-
-        texture = new Texture2D(/*(int)((float)Screen.width * 0.25f), Screen.height*/1,1);
+        texture = new Texture2D(1,1);
         this.screenWidth = (float)Screen.width * 0.4f;
         this.screenHeight = Screen.height;
 
@@ -44,6 +51,7 @@ public class GUINetDraw : MonoBehaviour {
         negativeLineColor = Color.red; negativeLineColor.a = 1f;
         positiveLineColor = Color.green; positiveLineColor.a = 1f;
         neuronColor = Color.magenta; neuronColor.a = 1f;
+        deadColor = new Color(0.5f,0f,0f); deadColor.a = 1f;
     }
 
     void OnGUI()
@@ -56,7 +64,11 @@ public class GUINetDraw : MonoBehaviour {
             drawNetState = !drawNetState;
         }
 
-        GUI.color = backgroundColor;
+        if (creature == null || creature.IsAlive())
+            GUI.color = backgroundColor;
+        else
+            GUI.color = deadColor;
+
         GUI.DrawTexture(new Rect(0, 0, screenWidth+10f, screenHeight), texture);
         DrawBrain();
         DrawUI();
@@ -227,7 +239,19 @@ public class GUINetDraw : MonoBehaviour {
                     ypos = y*yRatio + yOff;
                     GUI.color = Color.white;
                     GUI.DrawTexture(new Rect(xpos , ypos, rectWidth, rectHeight), texture);
-                    GUI.Label(new Rect((int)(xpos + (rectWidth / 7f)), (int)(ypos + (rectHeight / 4f)), rectWidth, rectHeight), neurons[x][y].ToString("0.000") + "", myStyle);
+                    myStyle.normal.textColor = Color.black;
+                    GUI.Label(new Rect((int)(xpos ), (int)(ypos + (rectHeight / 4f)), rectWidth, rectHeight), neurons[x][y].ToString("0.000") + "", myStyle);
+
+                    if (x == 0)
+                    {
+                        myStyle.normal.textColor = Color.green;
+                        GUI.Label(new Rect((int)(xpos + (rectWidth / 0.85f)), (int)(ypos + (rectHeight / 4f)), rectWidth, rectHeight), inputNames[y], myStyle);
+                    }
+                    else if (x == neurons.Length - 1)
+                    {
+                        myStyle.normal.textColor = Color.green;
+                        GUI.Label(new Rect((int)(xpos - (rectWidth / 0.475f)), (int)(ypos + (rectHeight / 4f)), rectWidth, rectHeight), outputNames[y], myStyle);
+                    }
                 }
             }
 
@@ -237,9 +261,12 @@ public class GUINetDraw : MonoBehaviour {
 
                 if (i == 0)
                 {
-                    string cretureInformation = treeDataList[i].name +
-                                                ", Parent: [" + creature.GetParentNames()+"]"+
+                    string state = creature.IsAlive() == true ? "[ALIVE]" : "[DEAD]";
+
+                    string cretureInformation = treeDataList[i].name +" "+ state+
+                                                "\n                                                         Parents: [" + creature.GetParentNames() + "]" +
                                                 "\n                                                         Child Count: " + creature.GetChildCount() +
+                                                "\n                                                         Generation: " + creature.GetGeneration() +
                                                 "\n                                                         Time Lived: " + creature.GetTimeLived().ToString("0.000") +
                                                 "\n                                                         Life: " + creature.GetLife().ToString("0.000") +
                                                 "\n                                                         Energy: " + creature.GetEnergy().ToString("0.000") +

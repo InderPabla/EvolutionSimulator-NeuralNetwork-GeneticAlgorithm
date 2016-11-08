@@ -19,35 +19,14 @@ public class WolrdManager_V2 : MonoBehaviour
     private int minCreatureCount = 60;
     private int totalCreaturesCount = 0;
 
-    private int[] brainNetwork;  
-    // Output
-    // Index 0: Forward acceleration
-    // Index 1: Turn acceleration
-    // Index 2: Body Hue
-    // Index 3: Mouth Hue
-    // Index 4: Eat Food
-    // Index 5: Give Birth
-    // Index 6: Fight Mode
-    // Index 7: Memory Output 1
-    // Index 8: Memory Output 2
-
-    // Input (Sensors can detect tile OR creature under the sensor)
-    // Index 0: Body Tile Hue
-    // Index 1: Body Tile Saturation
-    // Index 2: Left Sensor Hue
-    // Index 3: Left Sensor Saturation
-    // Index 4: Right Sensor Hue
-    // Index 5: Right Sensor Saturation
-    // Index 6: Body Size
-    // Index 7: Memory Input 1
-    // Index 8: Memory Input 2
+    private int[] brainNetwork = new int[] {30};  
 
     public int playSpeed = 1;
     public int slowFactor = 1;
 
     private int slowFactorCounter = 0;
     private int playSpeedVisual = 11;
-    private float worldDeltaTime = 0.001f;
+    private float worldDeltaTime = 0.002f;
     public static float WORLD_CLOCK = 0f;
     private bool textureLoaded = false;
 
@@ -70,12 +49,28 @@ public class WolrdManager_V2 : MonoBehaviour
     private int mutationDecrease = 1;
     private int mutationWeakerParentFactor = 1;
 
-    private float climate = 10;
-    private float minLife = 5;
-    private float lifeDecrease = 0.7f; 
+    private float climate = 3f;
+    private float minLife = 5.5f;
+    private float lifeDecrease = 0.5f;
+    private float eatDamage = 1f;
+    private float veloDamage = 3f;
+    private float angDamage = 0.5f;
+    private float fightDamage = 0.1f;
 
-    int inputNeurons = 20;
-    int outputNeurons = 9;
+    private int inputNeurons = 20;
+    private int outputNeurons = 9;
+
+    private float seedSoilFracture = 1f;
+    private float seedSoilColor = 0.5f;
+
+    private float seedWater = 1425f;
+    private float seedSoil = 134f;
+
+    private float seedSoilPower = 1.25f;
+
+    private float seedFirt = 8925;
+    private float seedSoilFirt = 5f;
+    private float seedSoilFirtPower = 0.3f;
 
     // Update is called once per frame
     void Update ()
@@ -99,10 +94,17 @@ public class WolrdManager_V2 : MonoBehaviour
                 if (playSpeed < playSpeedVisual)
                 {
                     float creatureCount = creatureList.Count;
+                    Vector3 cameraPos = Camera.main.transform.position;
+                    float height = 2 * Camera.main.orthographicSize;
+                    float width = height * Camera.main.aspect;
+                    Vector3 cameraSize = new Vector3(width,height,0f);
+
+                    Vector3 bottomLeft = cameraPos - (cameraSize/2) - new Vector3(1,1,0);
+                    Vector3 topRight = cameraPos + (cameraSize/2) + new Vector3(1,1,0);
+
                     for (int creatureIndex = 0; creatureIndex < creatureCount; creatureIndex++)
                     {
-
-                        creatureList[creatureIndex].UpdateRender(visionState);
+                        creatureList[creatureIndex].UpdateRender(visionState, bottomLeft, topRight);
                     }
                 }
 
@@ -223,72 +225,77 @@ public class WolrdManager_V2 : MonoBehaviour
 
     private void LoadWorld()
     {
-        if (textureLoaded == false)
+        string filename = "world_snapshot.lses";
+        if (File.Exists(filename))
         {
-            textureLoaded = true;
-            string filename = "world_snapshot.lses";  
-            StreamReader reader = new StreamReader(filename);
-            creatureList = new List<Creature_V2>();
-
-            string[] readAll = reader.ReadToEnd().Split(' ');
-            int actualLength = readAll.Length - 1;
-            int index = 0;
-
-            //make brain network
-            int brainLength = int.Parse(readAll[0]);
-            brainNetwork = new int[brainLength];
-            index++;
-
-            for (int i = 0; i < brainLength; i++, index++)
+            if (textureLoaded == false)
             {
-                brainNetwork[i] = int.Parse(readAll[index]);
-            }
-            brainCalculations = new Brain_V2(brainNetwork, -1,0,0,0,0,0,0).GetCalculations();
+                textureLoaded = true;
 
-            int numberOfCreatures = int.Parse(readAll[index]);
-            index++;
 
-            for (int creatureIndex = 0; creatureIndex < numberOfCreatures; creatureIndex++)
-            {
-                string name = readAll[index];index++;
-                string parnetNames = readAll[index];index++;
-                float energy = float.Parse(readAll[index]); index++;
-                float life = float.Parse(readAll[index]); index++;
-                Vector2 position = new Vector2(float.Parse(readAll[index]), float.Parse(readAll[index+1])); index += 2;
-                float rotation = float.Parse(readAll[index]); index++;
-                float veloForward = float.Parse(readAll[index]); index++;
-                float veloAngular = float.Parse(readAll[index]); index++;
-                float[][][] weights;
+                StreamReader reader = new StreamReader(filename);
+                creatureList = new List<Creature_V2>();
 
-                //Weights Initilization
-                List<float[][]> weightsList = new List<float[][]>();
+                string[] readAll = reader.ReadToEnd().Split(' ');
+                int actualLength = readAll.Length - 1;
+                int index = 0;
 
-                for (int i = 1; i < brainNetwork.Length; i++)
+                //make brain network
+                int brainLength = int.Parse(readAll[0]);
+                brainNetwork = new int[brainLength];
+                index++;
+
+                for (int i = 0; i < brainLength; i++, index++)
                 {
-                    List<float[]> layerWeightsList = new List<float[]>(); //layer weights list
+                    brainNetwork[i] = int.Parse(readAll[index]);
+                }
+                brainCalculations = new Brain_V2(brainNetwork, -1, 0, 0, 0, 0, 0, 0).GetCalculations();
 
-                    int neuronsInPreviousLayer = brainNetwork[i - 1];
+                int numberOfCreatures = int.Parse(readAll[index]);
+                index++;
 
-                    for (int j = 0; j < brainNetwork[i]; j++)
+                for (int creatureIndex = 0; creatureIndex < numberOfCreatures; creatureIndex++)
+                {
+                    string name = readAll[index]; index++;
+                    string parnetNames = readAll[index]; index++;
+                    float energy = float.Parse(readAll[index]); index++;
+                    float life = float.Parse(readAll[index]); index++;
+                    Vector2 position = new Vector2(float.Parse(readAll[index]), float.Parse(readAll[index + 1])); index += 2;
+                    float rotation = float.Parse(readAll[index]); index++;
+                    float veloForward = float.Parse(readAll[index]); index++;
+                    float veloAngular = float.Parse(readAll[index]); index++;
+                    float[][][] weights;
+
+                    //Weights Initilization
+                    List<float[][]> weightsList = new List<float[][]>();
+
+                    for (int i = 1; i < brainNetwork.Length; i++)
                     {
-                        float[] neuronWeights = new float[neuronsInPreviousLayer]; //neruons weights
+                        List<float[]> layerWeightsList = new List<float[]>(); //layer weights list
 
-                        for (int k = 0; k < neuronsInPreviousLayer; k++)
+                        int neuronsInPreviousLayer = brainNetwork[i - 1];
+
+                        for (int j = 0; j < brainNetwork[i]; j++)
                         {
-                            neuronWeights[k] = float.Parse(readAll[index]); index++;
-                        }
+                            float[] neuronWeights = new float[neuronsInPreviousLayer]; //neruons weights
 
-                        layerWeightsList.Add(neuronWeights);
+                            for (int k = 0; k < neuronsInPreviousLayer; k++)
+                            {
+                                neuronWeights[k] = float.Parse(readAll[index]); index++;
+                            }
+
+                            layerWeightsList.Add(neuronWeights);
+                        }
+                        weightsList.Add(layerWeightsList.ToArray());
                     }
-                    weightsList.Add(layerWeightsList.ToArray());
+
+                    weights = weightsList.ToArray(); //convert list to array
+
+                    CreateCreature(energy, life, veloForward, veloAngular, name, parnetNames, position, rotation, weights);
                 }
 
-                weights = weightsList.ToArray(); //convert list to array
-
-                CreateCreature(energy, life, veloForward, veloAngular, name, parnetNames, position, rotation, weights);
+                reader.Close();
             }
-
-            reader.Close();
         }
     }
 
@@ -428,6 +435,38 @@ public class WolrdManager_V2 : MonoBehaviour
         Application.runInBackground = this.runInBackground;
 
         string filename = "world_hyper_parameters.txt";
+
+        if (!File.Exists(filename))
+        {
+            StreamWriter writer = new StreamWriter(filename);
+            writer.WriteLine("neural_layers: 32");
+            writer.WriteLine("min_creature_count: 60");
+            writer.WriteLine("max_visual_speed: 11");
+            writer.WriteLine("climate: 2.8");
+            writer.WriteLine("min_life: 5.5");
+            writer.WriteLine("life_decrease: 0.5");
+            writer.WriteLine("eat_damage: 1");
+            writer.WriteLine("velo_damage: 3");
+            writer.WriteLine("ang_damage: 0.5");
+            writer.WriteLine("fight_damage: 0.1");
+            writer.WriteLine("@world_delta_time: 0.002");
+            writer.WriteLine("@mutation_number: 1000");
+            writer.WriteLine("@mutation_weaker_parent_factor: 1");
+            writer.WriteLine("@mutation_sign: 1");
+            writer.WriteLine("@mutation_random: 1");
+            writer.WriteLine("@mutation_increase: 1");
+            writer.WriteLine("@mutation_decrease: 1");
+            writer.WriteLine("@seed_soil_fracture: 1");
+            writer.WriteLine("@seed_soil_color: 0.5");
+            writer.WriteLine("@seed_disp_water: 1425");
+            writer.WriteLine("@seed_disp_soil: 134");
+            writer.WriteLine("@seed_soil_power: 1.25");
+            writer.WriteLine("@seed_disp_fertility: 8925");
+            writer.WriteLine("@seed_soil_fertility: 5");
+            writer.Write("@seed_soil_fertility_power: 0.3");
+            writer.Close();
+        }
+
         StreamReader reader = new StreamReader(filename);
 
         string[] neuralLayerLine = reader.ReadLine().Split(' ');
@@ -436,6 +475,10 @@ public class WolrdManager_V2 : MonoBehaviour
         string[] climateLine = reader.ReadLine().Split(' ');
         string[] minLifeLine = reader.ReadLine().Split(' ');
         string[] lifeDecreaseLine = reader.ReadLine().Split(' ');
+        string[] eatDamageLine = reader.ReadLine().Split(' ');
+        string[] veloDamageLine = reader.ReadLine().Split(' ');
+        string[] angDamageLine = reader.ReadLine().Split(' ');
+        string[] fightDamageLine = reader.ReadLine().Split(' ');
         string[] worldDeltaTimeLine = reader.ReadLine().Split(' ');
         string[] mutationNumberLine = reader.ReadLine().Split(' ');
         string[] mutationWeakerParentFactorLine = reader.ReadLine().Split(' ');
@@ -443,6 +486,14 @@ public class WolrdManager_V2 : MonoBehaviour
         string[] mutationRandomLine = reader.ReadLine().Split(' ');
         string[] mutationIncreaseLine = reader.ReadLine().Split(' ');
         string[] mutationDecreaseLine = reader.ReadLine().Split(' ');
+        string[] seedSoilFractureLine = reader.ReadLine().Split(' ');
+        string[] seedSoilColorLine = reader.ReadLine().Split(' ');
+        string[] seedWaterLine = reader.ReadLine().Split(' ');
+        string[] seedSoilLine = reader.ReadLine().Split(' ');
+        string[] seedSoilPowerLine = reader.ReadLine().Split(' ');
+        string[] seedFirtLine = reader.ReadLine().Split(' ');
+        string[] seedSoilFirtLine = reader.ReadLine().Split(' ');
+        string[] seedSoilFirtPowerLine = reader.ReadLine().Split(' ');
 
         //make brain network 
         int layerLength = (neuralLayerLine.Length - 1);
@@ -457,21 +508,32 @@ public class WolrdManager_V2 : MonoBehaviour
         minCreatureCount = int.Parse(minCreatureCountLine[1]);
         playSpeedVisual = int.Parse(maxVisualSpeedLine[1]);
         worldDeltaTime = float.Parse(worldDeltaTimeLine[1]);
+        climate = float.Parse(climateLine[1]);
+        minLife = float.Parse(minLifeLine[1]);
+        lifeDecrease = float.Parse(lifeDecreaseLine[1]);
+        eatDamage = float.Parse(eatDamageLine[1]);
+        veloDamage = float.Parse(veloDamageLine[1]);
+        angDamage = float.Parse(angDamageLine[1]);
+        fightDamage = float.Parse(fightDamageLine[1]);
         mutationNumber = int.Parse(mutationNumberLine[1]);
         mutationWeakerParentFactor = int.Parse(mutationWeakerParentFactorLine[1]);
         mutationSign = int.Parse(mutationSignLine[1]);
         mutationRandom = int.Parse(mutationRandomLine[1]);
         mutationIncrease = int.Parse(mutationIncreaseLine[1]);
         mutationDecrease = int.Parse(mutationDecreaseLine[1]);
-
-        climate = float.Parse(climateLine[1]);
-        minLife = float.Parse(minLifeLine[1]);
-        lifeDecrease = float.Parse(lifeDecreaseLine[1]);
+        seedSoilFracture = float.Parse(seedSoilFractureLine[1]);
+        seedSoilColor = float.Parse(seedSoilColorLine[1]);
+        seedWater = float.Parse(seedWaterLine[1]);
+        seedSoil = float.Parse(seedSoilLine[1]);
+        seedSoilPower = float.Parse(seedSoilPowerLine[1]);
+        seedFirt = float.Parse(seedFirtLine[1]);
+        seedSoilFirt = float.Parse(seedSoilFirtLine[1]);
+        seedSoilFirtPower = float.Parse(seedSoilFirtPowerLine[1]);
 
         reader.Close();
 
 
-        map_v2 = new TileMap_V2(tex, sizeX, sizeY, climate, worldDeltaTime);
+        map_v2 = new TileMap_V2(tex, sizeX, sizeY, climate, worldDeltaTime, seedSoilFracture, seedSoilColor, seedWater, seedSoil, seedSoilPower, seedFirt, seedSoilFirt, seedSoilFirtPower);
     }
 
     public void CreateCreature()
@@ -513,7 +575,7 @@ public class WolrdManager_V2 : MonoBehaviour
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount,mutationNumber,mutationSign,mutationRandom,mutationIncrease,mutationDecrease,mutationWeakerParentFactor);
         creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount,0,creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy,energy,life, minLife, lifeDecrease,veloForward,veloAngular, map_v2, this, "WORLD");
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount,0,creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f,0f,0f), bodyPosition, leftPos, rightPos,0.5f, UnityEngine.Random.Range(0f,360f), worldDeltaTime, creatureGameObject.transform.localScale.x/2f, energy,energy,life, minLife, lifeDecrease, eatDamage, veloDamage, angDamage, fightDamage, veloForward, veloAngular, map_v2, this, "WORLD");
         creatureList.Add(creature);
         totalCreaturesCount++;
     }
@@ -558,7 +620,7 @@ public class WolrdManager_V2 : MonoBehaviour
         brain.Mutate();
         creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount, parent.GetGeneration()+1,creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, energy, life, minLife, lifeDecrease, veloForward, veloAngular, map_v2, this, parent.GetName());
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount, parent.GetGeneration()+1,creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, energy, life, minLife, lifeDecrease, eatDamage, veloDamage, angDamage, fightDamage, veloForward, veloAngular, map_v2, this, parent.GetName());
         creatureList.Add(creature);
         totalCreaturesCount++;
 
@@ -609,7 +671,7 @@ public class WolrdManager_V2 : MonoBehaviour
 
         string parentNames = strongerParent.GetName() + "@" + weakerParent.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount, strongerParent.GetGeneration() + 1, creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, energy, life, minLife, lifeDecrease, veloForward,veloAngular, map_v2, this, parentNames);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount, strongerParent.GetGeneration() + 1, creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, UnityEngine.Random.Range(0f, 360f), worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, energy, life, minLife, lifeDecrease, eatDamage, veloDamage, angDamage, fightDamage, veloForward, veloAngular, map_v2, this, parentNames);
         creatureList.Add(creature);
         totalCreaturesCount++;
 
@@ -656,7 +718,7 @@ public class WolrdManager_V2 : MonoBehaviour
         Brain_V2 brain = new Brain_V2(brainNetwork, totalCreaturesCount, weights, name, mutationNumber, mutationSign, mutationRandom, mutationIncrease, mutationDecrease, mutationWeakerParentFactor);
         creatureGameObject.transform.GetChild(1).GetComponent<TextMesh>().text = brain.GetName();
 
-        Creature_V2 creature = new Creature_V2(totalCreaturesCount, 0, creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, angle, worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, currentEnergy, life, minLife, lifeDecrease, veloForward, veloAngular, map_v2, this, parentNames);
+        Creature_V2 creature = new Creature_V2(totalCreaturesCount, 0, creatureGameObject.transform, leftLine, rightLine, lineSensor, spikeLine, brain, new HSBColor(1f, 0f, 0f), bodyPosition, leftPos, rightPos, 0.5f, angle, worldDeltaTime, creatureGameObject.transform.localScale.x / 2f, energy, currentEnergy, life, minLife, lifeDecrease, eatDamage, veloDamage, angDamage, fightDamage, veloForward, veloAngular, map_v2, this, parentNames);
         creatureList.Add(creature);
         totalCreaturesCount++;
     }
