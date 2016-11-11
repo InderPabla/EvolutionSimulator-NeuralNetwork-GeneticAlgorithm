@@ -37,7 +37,7 @@ public class GUINetDraw : MonoBehaviour {
     private string[] inputNames = new string[] {"[Sensor_1_Dist]", "[Sensor_2_Dist]", "[Sensor_3_Dist]", "[Sensor_4_Dist]",
                                                  "[Sensor_1_Hue]", "[Sensor_2_Hue]", "[Sensor_3_Hue]", "[Sensor_4_Hue]","[Spike_Hue]",
                                                  "[Collide?]", "[Collide_Hue]", "[Tile_Hue]", "[Tile_Sat]", "[Left_Hue]", "[Left_Sat]", "[Right_Hue]", "[Right_Sat]",
-                                                 "[Radius]", "[Mem_In_1]","[Mem_In_2]" };
+                                                 /*"[Life]","[Energy]"*/"[Radius]", "[Mem_In_1]","[Mem_In_2]" };
 
     private string[] outputNames = new string[] {"[Velo_Fwd]","[Velo_Ang]","[MouthHue]","[BodyHue]","[Eat?]","[Birth?]","[Spike_Len]","[Mem_Out_1]","[Mem_Out_2]"};
 
@@ -111,7 +111,7 @@ public class GUINetDraw : MonoBehaviour {
                                 lineColor = negativeLineColor;
                             }
 
-                            Drawing.DrawLine(pointA, pointB, lineColor, 1f, texture);
+                            Drawing.DrawLine(pointA, pointB, lineColor, 2f, texture);
                         }
                     }
                 }
@@ -242,7 +242,7 @@ public class GUINetDraw : MonoBehaviour {
                     myStyle.normal.textColor = Color.black;
                     GUI.Label(new Rect((int)(xpos ), (int)(ypos + (rectHeight / 4f)), rectWidth, rectHeight), neurons[x][y].ToString("0.000") + "", myStyle);
 
-                    if (x == 0)
+                    /*if (x == 0)
                     {
                         myStyle.normal.textColor = Color.green;
                         GUI.Label(new Rect((int)(xpos + (rectWidth / 0.85f)), (int)(ypos + (rectHeight / 4f)), rectWidth, rectHeight), inputNames[y], myStyle);
@@ -251,7 +251,7 @@ public class GUINetDraw : MonoBehaviour {
                     {
                         myStyle.normal.textColor = Color.green;
                         GUI.Label(new Rect((int)(xpos - (rectWidth / 0.475f)), (int)(ypos + (rectHeight / 4f)), rectWidth, rectHeight), outputNames[y], myStyle);
-                    }
+                    }*/
                 }
             }
 

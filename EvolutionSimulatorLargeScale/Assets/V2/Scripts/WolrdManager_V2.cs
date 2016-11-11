@@ -19,7 +19,7 @@ public class WolrdManager_V2 : MonoBehaviour
     private int minCreatureCount = 60;
     private int totalCreaturesCount = 0;
 
-    private int[] brainNetwork = new int[] {30};  
+    private int[] brainNetwork;  
 
     public int playSpeed = 1;
     public int slowFactor = 1;
@@ -216,7 +216,16 @@ public class WolrdManager_V2 : MonoBehaviour
                     }  
                 }
             }
+        }
 
+        Tile_V2[,] tiles = map_v2.GetTilesArray();
+
+        for (int j = 0; j < 100; j++)
+        {
+            for (int k = 0; k < 100; k++)
+            {
+                writer.Write(tiles[j, k].currentEnergy + " ");
+            }
         }
 
         writer.Close();
@@ -293,6 +302,19 @@ public class WolrdManager_V2 : MonoBehaviour
 
                     CreateCreature(energy, life, veloForward, veloAngular, name, parnetNames, position, rotation, weights);
                 }
+
+                float[,] currentEnergyArray = new float[100, 100];
+                
+                for (int j = 0; j < 100; j++)
+                {
+                    for (int k = 0; k < 100; k++)
+                    {
+                        currentEnergyArray[j, k] = float.Parse(readAll[index]);
+                        index++;
+                    }
+                }
+
+                map_v2.SetCurrentEnergy(currentEnergyArray);
 
                 reader.Close();
             }

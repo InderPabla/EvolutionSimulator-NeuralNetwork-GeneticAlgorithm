@@ -82,7 +82,7 @@ public class Energy
 
         if (fight > 0 && /*maturity > MIN_BIRTH_MATURITY &&*/ spikeCreature != null && maturity> MIN_FIGHT_MATURITY)
         {
-            
+
             float enemyEnergy = spikeCreature.GetEnergy();
             if (enemyEnergy > 0f)
             {
@@ -96,7 +96,16 @@ public class Energy
                 spikeCreature.RemoveEnergy(energySuck);
             }
 
-            //deltaEnergy -= (worldDeltaTime) / 1f;
+            /*float enemyLife = spikeCreature.GetLife();
+            if (enemyLife > 0f)
+            {
+                float lifeSuck = fightDamage * (Mathf.Max(currentEnergy, 0f)) * 0.1f;
+
+                enemyLife -= lifeSuck;
+
+                life += (lifeSuck / 1.25f);
+                spikeCreature.RemoveLife(lifeSuck);
+            }*/
         }
 
 
@@ -146,6 +155,11 @@ public class Energy
     public void RemoveEnergy(float energy)
     {
         currentEnergy -= energy;
+    }
+
+    public void RemoveLife(float life)
+    {
+        this.life -= life;
     }
 
     public bool GiveBirth()

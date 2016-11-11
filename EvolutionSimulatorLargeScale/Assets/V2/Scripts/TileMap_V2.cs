@@ -494,5 +494,24 @@ public class TileMap_V2
                 tiles[y, x].currentEnergy = 1f;
         }
     }
+
+    public Tile_V2[,] GetTilesArray()
+    {
+        return tiles;
+    }
+
+    public void SetCurrentEnergy(float[,] currentEnergyArray )
+    {
+        for(int i = 0; i < 100; i++)
+        {
+            for (int j = 0; j <100; j++)
+            {
+                if (tiles[i, j].type == Tile_V2.TILE_FERT)
+                {
+                    tiles[i, j].currentEnergy = currentEnergyArray[i, j];
+                }
+            }
+        }
+    }
     
 }

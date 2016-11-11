@@ -1,8 +1,8 @@
 neural_layers: 40
 min_creature_count: 60
 max_visual_speed: 11
-climate: 0.75
-min_life: 5.5
+climate: 1
+min_life: 5
 life_decrease: 0.5
 eat_damage: 0
 velo_damage: 3
@@ -15,7 +15,7 @@ fight_damage: 0.5
 @mutation_random: 1
 @mutation_increase: 1
 @mutation_decrease: 1
-@seed_soil_fracture: 1
+@seed_soil_fracture: 0.1
 @seed_soil_color: 0.5
 @seed_disp_water: 1425
 @seed_disp_soil: 134

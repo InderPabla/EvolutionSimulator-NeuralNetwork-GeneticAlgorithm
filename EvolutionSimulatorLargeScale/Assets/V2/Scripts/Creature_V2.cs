@@ -201,7 +201,7 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
         float[] output = brain.Feedforward(new float[] {sensorDistance[0],sensorDistance[1], sensorDistance[2], sensorDistance[3],
             sensorValue[0], sensorValue[1], sensorValue[2], sensorValue[3], spikeValue,
             isCollision, hueAverage, bodyTileColor.h, bodyTileColor.s, leftTileColor.h, leftTileColor.s, rightTileColor.h, rightTileColor.s,
-            base.radius, previousOutput[7], previousOutput[8] });
+            base.radius/*energy.GetLife()/2f, energy.GetEnergy()/25f*/, previousOutput[7], previousOutput[8] });
 
         float accelForward = output[0];
         float accelAngular = output[1];
@@ -421,6 +421,11 @@ public class Creature_V2 : CustomCircleCollider, IEquatable<Creature_V2>, ICompa
     public void RemoveEnergy(float energyDamage)
     {
         energy.RemoveEnergy(energyDamage);
+    }
+
+    public void RemoveLife(float life)
+    {
+        energy.RemoveLife(life);
     }
 
     public float GetEnergy()
